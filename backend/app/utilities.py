@@ -39,7 +39,7 @@ class Servidor:
         self.estado = estado
     
 class Cliente:
-    def __init__(self, id, tipo_sv, estado, tiempo_llegada, inicio_atencion, fin_atencion)
+    def __init__(self, id, tipo_sv, estado, tiempo_llegada, inicio_atencion, fin_atencion):
         self.id = id
         self.tipo_sv = tipo_sv
         self.estado = estado
@@ -55,8 +55,6 @@ def hs_a_min(mu, hs):
     """
     minutos = hs * 60
     return minutos/mu
-
-
 
 def tipo_servicio(rnd):
     """
@@ -87,7 +85,6 @@ def llegadaCliente(tipo_servicio, reloj, rnd):
         llegada = distribucion_exp_neg(media_de_cliente_por_min, rnd)
         return reloj + llegada       
     
-
 
 def tiempoEntreLlegadas(t1, t2):
     pass
