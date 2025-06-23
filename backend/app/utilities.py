@@ -54,7 +54,7 @@ def tipo_servicio(rnd):
     cada uno de los empleados tiene una tasa de servicio de 10 clientes p/ hora.
     Mientras que para Reclamaciones y devoluciones, un solo empleado con una tasa de servicio de 7 clientes p/ hora.
     """
-    if 0.742 <= rnd <= 1.00:
+    if 0.742 <= rnd < 1.00:
         return 2
     return 1
 
@@ -100,9 +100,10 @@ def rungeKutta(f, C, R):
     R_act = 0.00
     t = 0.00
     while R_act <= R:
-        vec_rk4.append({'t': round(t, 4), 'R': round(R_act, 4)})
-
+        # vec_rk4.append({'t': round(t, 6), 'R': round(R_act, 6)})
+        vec_rk4.append({'t': t, 'R': R_act})  
         # Coeficientes
+
         k1 = f(C, T, t)
         k2 = f(C, T, t + h/2)
         k3 = f(C, T, t + h/2)
@@ -113,8 +114,10 @@ def rungeKutta(f, C, R):
         R_act += delta_R
         t += h
 
-    vec_rk4.append({'t': round(t, 4), 'R': round(R_act, 4)})
-    return vec_rk4, round(t, 4)
+    # vec_rk4.append({'t': round(t, 6), 'R': round(R_act, 6)})
+    vec_rk4.append({'t': t, 'R': R_act})
+
+    return vec_rk4, t
 
 def tiempoEntreLlegadas(t1, t2):
     pass
