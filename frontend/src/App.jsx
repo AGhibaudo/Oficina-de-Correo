@@ -1,4 +1,7 @@
 import "./App.css";
+import ParametrosForm from "./components/ParametrosForm";
+
+
 
 const filas = [
   {
@@ -55,7 +58,12 @@ const filas = [
 
 function App() {
   return (
+    
     <section className="intro">
+      <div>
+        <h1>Simulación de Inscripción — Parámetros</h1>
+        <ParametrosForm />
+      </div>
       <div className="h-100">
         <div className="mask d-flex align-items-center h-100">
           <div className="container">

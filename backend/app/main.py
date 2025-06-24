@@ -3,13 +3,16 @@ from utilities import *
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi import HTTPException
+
 
 app = FastAPI()
 
 # CORS: permitir conexiones desde el frontend (localhost:5173 en desarrollo)
 
 # Para poder runnear el back:
-# uvicorn main:app --reload
+# tienen q tener la dependencia -> pip install uvicorn !!!!!!!!!!!
+# uvicorn main:app --reload -> Parense en app !!!
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,30 +35,42 @@ class FormParametros(BaseModel):
     Lim Superior expertiz del empleado: Indica q tan bueno es definiendo el máximo de capacidad que este puede tener para la Distr. Uniforme.
     parametro T: Esté parámetro es una cte para poder realizar Runge Kutta de 4to orden.
     """
+
+app.state.form_params: FormParametros | None = None
+
+"""
+Enpoints Definidos
+"""
 @app.get("/")
 def read_root():
-    return {"mensaje": "API funcionando correctamente"}
+    return {"mensaje": "API funcionando correctamente, ntu al netimanid"}
 
+@app.post("/parametros")
+async def recibir_form(data: FormParametros):
+    app.state.form_params = data
+    return {"ok": True, "message": "Parámetros recibidos con exito!"} 
 
-@app.post("/submit")
-def recibir_form(data: FormParametros):
-    return {"mensaje": f"Lineas a generar {data.lineas}, Lim Inf de capacidad de los empleados {data.limInfExpertizEmpleado} \n Lim Sup. de capacidad de los empleados {data.limSupExpertizEmpleado}, Valor del Parametro T para Runge Kutta {data.parametroT}."}
+@app.get("/parametros")
+async def obtener_forms_params():
+    if app.state.form_params is None:
+        raise HTTPException(404, detail="Aún no se enviaron parámetros")
+    return app.state.form_params
 
-C = 0
-T = 2
-R = random.uniform(100, 300)
-print(f'Valor de R: {R}')
-trayectoria, t_final = rungeKutta(funcionEDO, C, R)
+# C = 0
+# T = 2
+# R = random.uniform(100, 300)
+# print(f'Valor de R: {R}')
+# trayectoria, t_final = rungeKutta(funcionEDO, C, R)
 
-print(f"Umbral R = {R:.2f} superado en t = {t_final} min")
-    # Si quieres ver las primeras 5 iter:
-for paso in trayectoria[:20]:
-    print(paso)
-    # Por ejemplo, para enviar al frontend:
-import json
-with open('rk4_trayectoria.json','w') as f:
-        json.dump({
-            'R (Valor uniforme)': R,
-            't_final':     t_final,
-            'trayectoria': trayectoria
-        }, f, indent=2)
+# print(f"Umbral R = {R:.2f} superado en t = {t_final} min")
+#     # Si quieres ver las primeras 5 iter:
+# for paso in trayectoria[:20]:
+#     print(paso)
+#     # Por ejemplo, para enviar al frontend:
+# import json
+# with open('rk4_trayectoria.json','w') as f:
+#         json.dump({
+#             'R (Valor uniforme)': R,
+#             't_final':     t_final,
+#             'trayectoria': trayectoria
+#         }, f, indent=2)
