@@ -1,4 +1,3 @@
-// src/components/ParametrosForm.jsx
 import React, { useState } from "react";
 
 export default function ParametrosForm() {
@@ -21,11 +20,11 @@ export default function ParametrosForm() {
     setError(null);
     setRespuesta(null);
 
-    // Validaciones básicas en front
     if (!limInf || !limSup || !paramT) {
       setError("Todos los campos son obligatorios.");
       return;
     }
+
     if (Number(limInf) >= Number(limSup)) {
       setError("El límite inferior debe ser menor que el superior.");
       return;
@@ -52,15 +51,19 @@ export default function ParametrosForm() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>
-      <h2>Parámetros de Simulación</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Líneas a simular:</label>
+    <div className="container my-4">
+      <h2 className="text-center mb-4">Parámetros de Simulación</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto row row-cols-1 row-cols-md-2 g-3"
+        style={{ maxWidth: "600px" }}
+      >
+        <div className="col-12">
+          <label className="form-label">Líneas a simular:</label>
           <select
+            className="form-select"
             value={lineas}
             onChange={(e) => setLineas(e.target.value)}
-            style={{ marginLeft: 8 }}
           >
             {opcionesLineas.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -70,58 +73,62 @@ export default function ParametrosForm() {
           </select>
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label>Límite Inferior Expertiz:</label>
+        <div className="col-12">
+          <label className="form-label">Límite Inferior Expertiz:</label>
           <input
             type="number"
+            className="form-control"
             value={limInf}
             onChange={(e) => setLimInf(e.target.value)}
             placeholder="p.ej. 1"
-            style={{ marginLeft: 8, width: "100%" }}
             required
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label>Límite Superior Expertiz:</label>
+        <div className="col-12">
+          <label className="form-label">Límite Superior Expertiz:</label>
           <input
             type="number"
+            className="form-control"
             value={limSup}
             onChange={(e) => setLimSup(e.target.value)}
             placeholder="p.ej. 10"
-            style={{ marginLeft: 8, width: "100%" }}
             required
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label>Parámetro T (Runge-Kutta):</label>
+        <div className="col-12">
+          <label className="form-label">Parámetro T (Runge-Kutta):</label>
           <input
             type="number"
             step="0.01"
+            className="form-control"
             value={paramT}
             onChange={(e) => setParamT(e.target.value)}
             placeholder="p.ej. 0.5"
-            style={{ marginLeft: 8, width: "100%" }}
             required
           />
         </div>
 
-        <button type="submit">Enviar Parámetros</button>
+        <div className="col-12 text-center">
+          <button type="submit" className="btn btn-primary mt-3 px-5">
+            Enviar Parámetros
+          </button>
+        </div>
+
+        {error && (
+          <div className="col-12 alert alert-danger mt-2 text-center">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {respuesta && (
+          <div className="col-12 alert alert-success mt-2 text-center">
+            <strong>Respuesta del backend:</strong>
+            <div>{respuesta.mensaje}</div>
+          </div>
+        )}
       </form>
-
-      {error && (
-        <div style={{ marginTop: 16, color: "crimson" }}>
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {respuesta && (
-        <div style={{ marginTop: 16, whiteSpace: "pre-wrap" }}>
-          <strong>Respuesta del backend:</strong>
-          <div>{respuesta.mensaje}</div>
-        </div>
-      )}
     </div>
   );
 }

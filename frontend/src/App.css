@@ -1,21 +1,18 @@
+/* === Layout general === */
 html,
 body,
 .intro {
   height: 100%;
 }
 
+/* === Fondo degradado personalizado === */
 .gradient-custom-1 {
-  /* fallback for old browsers */
   background: #cd9cf2;
-
-  /* Chrome 10-25, Safari 5.1-6 */
   background: -webkit-linear-gradient(
     to top,
     rgba(205, 156, 242, 1),
     rgba(246, 243, 255, 1)
   );
-
-  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   background: linear-gradient(
     to top,
     rgba(205, 156, 242, 1),
@@ -23,12 +20,77 @@ body,
   );
 }
 
+/* === Contenedor de tabla scrollable === */
+.table-container {
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #ccc;
+  position: relative;
+}
+
+/* === Tabla === */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* === Cabecera fija (thead) === */
+thead th {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 5;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* === Primeras filas fijas (fila 1–3) === */
+thead.filas-fijas tr {
+  position: sticky;
+  top: 40px; /* Ajustar según altura real del thead */
+  background: #f8f9fa;
+  z-index: 4;
+}
+
+/* === Columnas fijas (1 a 3) === */
+th.sticky-col,
+td.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 10000;
+
+}
+
+th.sticky-col-2,
+td.sticky-col-2 {
+  position: sticky;
+  left: 65px; 
+  z-index: 10000;
+
+}
+
+th.sticky-col-3,
+td.sticky-col-3 {
+  position: sticky;
+  left: 200px; /* Ajustar según suma de columnas 1 y 2 */
+  z-index: 10000;
+
+}
+th.sticky-col-4,
+td.sticky-col-4 {
+  position: sticky;
+  left: 200px; /* Ajustar según suma de columnas 1 y 2 */
+  z-index: 10000;
+
+}
+
+/* === Contenido de celdas === */
 table td,
 table th {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
 }
+
 tbody td {
   font-weight: 500;
   color: #999999;

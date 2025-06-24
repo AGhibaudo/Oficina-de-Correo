@@ -9,17 +9,14 @@ import ParametrosForm from "./components/ParametrosForm";
 function App() {
   return (
     <>
-    <div>
-        <h1>Simulación de Inscripción — Parámetros</h1>
+  
+      <Navbar />
+      <div>
         <ParametrosForm />
       </div>
-    {/* <section className="intro"> */}
-      <Navbar />
+      <h3>Tabla de simulación: </h3>
       <Cuadro/>
-      {/* <div className="h-100"> */}
-        
-      {/* </div> */}
-    {/* </section> */}
+     
     </>
   );
 }

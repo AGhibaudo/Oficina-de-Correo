@@ -1,9 +1,9 @@
 import React from "react";
 
 function CuadroFilas({ filas }) {
-  return (
-    <tbody>
-      {filas.map((fila, index) => (
+    return (
+        <tbody>
+            {/* {filas.map((fila, index) => (
         <tr key={index}>
           <td>{fila.reloj}</td>
           <td>{fila.evento}</td>
@@ -44,10 +44,36 @@ function CuadroFilas({ filas }) {
           <td>{fila.tiempo_llegada_cliente}</td>
           <td>{fila.inicio_atencion_cliente}</td>
           <td>{fila.fin_atencion_cliente}</td>
-        </tr>
-      ))}
-    </tbody>
-  );
+        </tr> 
+ ))} */}
+
+            {filas.map((fila, index) => (
+                // <tr key={index}>
+                //     {Object.values(fila).map((valor, j) => (
+                //         <td key={j}>{valor}</td>
+                //     ))}
+                // </tr>
+                <tr key={index}>
+                    {Object.entries(fila).map(([key, valor], j) => {
+                        let stickyClass = "";
+                        if (j === 0) stickyClass = "sticky-col";
+                        if (j === 1) stickyClass = "sticky-col-2";
+                        if (j === 2) stickyClass = "sticky-col-3";
+
+                        return (
+                            <td key={j} className={stickyClass}>
+                                {valor}
+                            </td>
+                        );
+                    })}
+                </tr>
+            ))}
+
+
+
+
+        </tbody>
+    );
 }
 
 export default CuadroFilas;

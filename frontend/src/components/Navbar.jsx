@@ -20,7 +20,7 @@ function Navbar() {
             <div className="collapse navbar-collapse" id="navbarNav">
                 <ul className="navbar-nav ms-auto">
                     <li className="nav-item">
-                        <a className="nav-link active" href="#">Inicio</a>
+                        <a className="nav-link active" href="#">Simulación Correo</a>
                     </li>
                 </ul>
             </div>

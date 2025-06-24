@@ -55,29 +55,30 @@ const filas = [
   ];
 
   function Cuadro() {
+    // para que queren fijas 3 primeras filas de datos al scrollear
+    const filasFijas = filas.slice(0, 3);       // primeras 3 filas
+    const filasRestantes = filas.slice(3);      // el resto
     return (
-    //   <div className="mask d-flex align-items-center h-100">
-    //     <div className="container">
-    //       <div className="row justify-content-center">
-    //         <div className="col-12">
-    //           <div className="table-responsive bg-white">
-    //             <table className="table table-bordered border-dark mb-0 mt-5 text-center">
-    //               <CuadroCabecera />
-    //               <CuadroFilas filas={filas} />
-    //             </table>
-    //           </div>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-    <div className="container-fluid px-10">
-      <div className="table-responsive">
-        <table className="table table-bordered border-dark text-center mb-0">
-          <CuadroCabecera />
-          <CuadroFilas filas={filas} />
-        </table>
+    
+        <div className="container-fluid px-0">
+        <div className="table-responsive table-container">
+          <table className="table table-bordered border-dark text-center mb-0">
+            <CuadroCabecera />
+  
+            <thead className="filas-fijas">
+              {filasFijas.map((fila, i) => (
+                <tr key={`fija-${i}`}>
+                  {Object.values(fila).map((valor, j) => (
+                    <td key={j}>{valor}</td>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+  
+            <CuadroFilas filas={filasRestantes} />
+          </table>
+        </div>
       </div>
-    </div>
     );
   }
 export default Cuadro
