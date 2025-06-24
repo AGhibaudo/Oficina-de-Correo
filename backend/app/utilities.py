@@ -17,28 +17,6 @@ def distribucion_exp_neg(mu, rnd):
     # rnd = el valor aleatorio.
     return -mu * math.log(1 - rnd)
 
-class Servidor:
-    def __init__(self, id, tipo, nombre, T, rnd, R, demora, hora_fin_atencion, estado):
-        self.id = id
-        self.tipo = tipo
-        self.nombre = nombre
-        self.T = T # Este parámetro es fijo según lo detallado con el profe ["A mi criterio podríamos poner q sea un parámetro que ingrese el usuario - Alan"]
-        self.rnd = rnd # Falta poner la función para q me de un numero aleatorio acá jijo
-        self.R = R # R hace referencia a una distribución uniforme de la velocidad de tiempo de atención.
-        self.demora = demora # Falta hacer lo de runge kutta acá
-        self.hora_fin_atencion = hora_fin_atencion
-        self.estado = estado
-    
-class Cliente:
-    def __init__(self, id, tipo_sv, estado, tiempo_llegada, inicio_atencion, fin_atencion):
-        self.id = id
-        self.tipo_sv = tipo_sv
-        self.estado = estado
-        self.tiempo_llegada = tiempo_llegada
-        self.inicio_atencion = inicio_atencion
-        self.fin_atencion = fin_atencion
-
-
 def horas_a_minutos(hs: float) -> float:
     return hs * 60
 
