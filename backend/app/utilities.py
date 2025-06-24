@@ -39,13 +39,12 @@ class Cliente:
         self.fin_atencion = fin_atencion
 
 
-def hs_a_min(mu, hs):
-    """
-    1 h -> 60 m
-    n clientes
-    """
-    minutos = hs * 60
-    return round(minutos/mu, 2)
+def horas_a_minutos(hs: float) -> float:
+    return hs * 60
+
+def media_entre_llegadas(tasa_por_hora: float) -> float:
+    # convierte tasa (clientes/h) a tiempo medio entre llegadas en minutos
+    return round(horas_a_minutos(1) / tasa_por_hora, 2)
 
 
 def tipo_servicio(rnd):
@@ -58,25 +57,16 @@ def tipo_servicio(rnd):
         return 2
     return 1
 
-def llegadaCliente(tipo_servicio, reloj, rnd):
+def llegada_cliente(tipo, reloj, rnd):
     """
     Para la llegada del cliente necesitamos saber el valor actual del reloj, y un valor aleatorio para indicar cuando 
     llegará este, todo esto en base al tipo de servicio que tiene. Los calculos de la media son calculados mediante una regla
     de tres, ya que pasamos de Horas a Minutos :)
     """
-    if tipo_servicio == 1: # Esto equivaldría a que estamos ante Envío de Paquetes
-        mu = 25
-        horas = 1
-        media_de_cliente_por_min = hs_a_min(mu, horas)
-        llegada = distribucion_exp_neg(media_de_cliente_por_min, rnd)
-        return reloj + llegada 
-    else: # Esto equivaldría a que estamos ante un Reclamo o Devolución. 
-        mu = 15
-        horas = 1
-        media_de_cliente_por_min = hs_a_min(mu, horas)
-        llegada = distribucion_exp_neg(media_de_cliente_por_min, rnd)
-        return reloj + llegada       
-
+    tasa = 25 if tipo == 1 else 15
+    media = media_entre_llegadas(tasa)
+    return reloj + distribucion_exp_neg(media, rnd)
+  
 
 def funcionEDO(C, T, t):
     """
@@ -118,6 +108,10 @@ def rungeKutta(f, C, R):
     vec_rk4.append({'t': t, 'R': R_act})
 
     return vec_rk4, t
+
+def crearVector(filas_form):
+    matriz = [[0] * 32 for i in range(range(filas_form))]
+    return matriz
 
 def tiempoEntreLlegadas(t1, t2):
     pass
