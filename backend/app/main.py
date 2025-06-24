@@ -20,19 +20,26 @@ app.add_middleware(
 )
 
 # Modelo de datos esperado
-class FormData(BaseModel):
-    nombre: str
-    edad: int
-
+class FormParametros(BaseModel):
+    lineas: int
+    limInfExpertizEmpleado: int
+    limSupExpertizEmpleado: int
+    parametroT: float
+    """
+    Acá puse más o menos los parámetros que se supone que debería poder modificar el usuario
+    Lineas a simular: Faltaría hacer la validación en el Forms que sea de: 100, 1000, 50000, 10000000 corte desplegable.
+    Limite inferior expertiz del empleado: Indica q tan malo es definiendo un limite para la Distr. Uniforme.
+    Lim Superior expertiz del empleado: Indica q tan bueno es definiendo el máximo de capacidad que este puede tener para la Distr. Uniforme.
+    parametro T: Esté parámetro es una cte para poder realizar Runge Kutta de 4to orden.
+    """
 @app.get("/")
 def read_root():
     return {"mensaje": "API funcionando correctamente"}
 
 
 @app.post("/submit")
-def recibir_form(data: FormData):
-    return {"mensaje": f"Hola {data.nombre}, tenés {data.edad} años."}
-
+def recibir_form(data: FormParametros):
+    return {"mensaje": f"Lineas a generar {data.lineas}, Lim Inf de capacidad de los empleados {data.limInfExpertizEmpleado} \n Lim Sup. de capacidad de los empleados {data.limSupExpertizEmpleado}, Valor del Parametro T para Runge Kutta {data.parametroT}."}
 
 C = 0
 T = 2
