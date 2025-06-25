@@ -60,9 +60,10 @@ class SimuladorCorreo:
         self.r_comun, self.rnd = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
         # SERVIDORES
         
-        self.servidores_ep = [{'estado': 'LIBRE', 'rnd': self.rnd, 'R': self.r_comun, 'cliente': None} for _ in range(2)] 
-        self.servidor_ryd = [{'estado': 'LIBRE', 'rnd': self.rnd,'R': self.r_comun, 'cliente': None}]
-
+        # self.servidores_ep = [{'estado': 'LIBRE', 'rnd': self.rnd, 'R': self.r_comun, 'cliente': None} for _ in range(2)] 
+        # self.servidor_ryd = [{'estado': 'LIBRE', 'rnd': self.rnd,'R': self.r_comun, 'cliente': None}]
+        self.servidores_ep = [{'estado': 'LIBRE', 'R': self.r_comun, 'cliente': None} for _ in range(2)] 
+        self.servidor_ryd = [{'estado': 'LIBRE', 'R': self.r_comun, 'cliente': None}]
         self.servidores_ep[1]['t_remanente'] = 0.0 # Manejo ambos servidores dentro de un for, pero al servidor_ep[2] le agrego el t remanente :)
 
 
@@ -120,7 +121,9 @@ class SimuladorCorreo:
                 fin = round(self.reloj + duracion, 2)
                 cliente.reloj_fin = fin
                 # self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'],'rk': duracion})
-                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'], 'rk': duracion})
+                rnd = generar_rnd()
+
+                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion})
 
                 break
         else: 
