@@ -9,7 +9,7 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
   const [error, setError] = useState(null);
 
   const opcionesLineas = [
-    { value: 100, label: "100" },
+    { value: 10, label: "10" },
     { value: 1000, label: "1 000" },
     { value: 50000, label: "50 000" },
     { value: 10000000, label: "10 000 000" },
