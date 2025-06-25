@@ -22,10 +22,6 @@ class FormParametros(BaseModel):
 
 # backend/models.py
 
-from pydantic import BaseModel
-from typing import Dict, Any
-
-
 class Servidor(BaseModel):
     """
     Representa cualquiera de tus servidores (EDP E1, EDP E2, RYD E1, Estadísticas S1, S2…).
