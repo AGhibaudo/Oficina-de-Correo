@@ -14,11 +14,11 @@ class FormParametros(BaseModel):
     parametro T: Esté parámetro es una cte para poder realizar Runge Kutta de 4to orden.
     """
 
-class fila(BaseModel):
-    __root__: Dict[str, Any]
+# class fila(BaseModel):
+#     __root__: Dict[str, Any]
 
-class Simulacion(BaseModel):
-    filas: List[fila]
+# class Simulacion(BaseModel):
+#     filas: List[fila]
 
 # backend/models.py
 
