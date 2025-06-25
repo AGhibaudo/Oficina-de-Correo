@@ -97,6 +97,7 @@ class SimuladorCorreo:
     def generar_llegada(self, mu):
       # DEVUELVE EL TIEMPO ENTRE 
       rnd = generar_rnd()
+      print(rnd)
       tiempo = distribucion_exp_neg(mu, rnd)
       return {'rnd': rnd, 'dt': tiempo, 'hora': round(self.reloj + tiempo, 2)}
         
@@ -107,6 +108,7 @@ class SimuladorCorreo:
         # Alan -> Esto es lo q interprete, tambien queda como lo de juli, pero lo que cambia es la utilización de nuestras funciones.
         # Aca tipo = 1 va a hacer referencia a Envio de Paquetes ! mientras que 2 hará referencia a Reclamos y Devoluciones.
         # Ahora esta en función a nuestras funciones definidas en utilities, tiene el mismo funcionamiento
+
         for i, servidor in enumerate(self.servidores_ep if tipo == 1 else self.servidor_ryd):
             if servidor['estado'] == 'LIBRE':
                 servidor['estado'] = 'OCUPADO'
@@ -117,7 +119,9 @@ class SimuladorCorreo:
                 vector_kutta, duracion = rungeKutta(funcionEDO, cola, self.r_comun)
                 fin = round(self.reloj + duracion, 2)
                 cliente.reloj_fin = fin
-                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'],'rk': duracion})
+                # self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'],'rk': duracion})
+                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'], 'rk': duracion})
+
                 break
         else: 
             if tipo == 1:
@@ -184,25 +188,27 @@ class SimuladorCorreo:
             eventos = [
                 ('Llegada_EnvPaq', self.llegada_cli_ep['hora']),
                 ('Llegada_RecYDev', self.llegada_cli_ryd['hora'])
-            ] + [(f'Fin_{e["tipo"]}_{e["cliente"].nombre()}', e['fin']) for e in self.fin_atencion]
+            ] + [(f'FIN_{e["tipo"]}_{e["cliente"].nombre()}', e['fin']) for e in self.fin_atencion]
+            # print(eventos)
 
             evento, instante = min(eventos, key=lambda x: x[1])
+            # print("holaholaholaholaholahoalhoalhoalhoahlaohlo")
+            # print(evento, instante)
             self.reloj = instante 
             info_extra = {}
             
             if evento == 'Llegada_EnvPaq' and self.reloj == self.llegada_cli_ep['hora']:
                 self.contador_paquetes += 1
-                cliente = Cliente('PAQ', self.contador_paquetes)
+                cliente = Cliente('PAQ_', self.contador_paquetes)
                 cliente.reloj_llegada = self.reloj
                 nombre = cliente.nombre()
                 self.clientes[nombre] = cliente
-                # self.prox_lleg_ep = self.generar_llegada(25)
                 self.llegada_cli_ep = self.generar_llegada(25)
                 self.iniciar_atencion(1, cliente)
             
             elif evento == 'Llegada_RecYDev' and self.reloj == self.llegada_cli_ryd['hora']:
                 self.contador_reclamos += 1
-                cliente = Cliente('REC', self.contador_reclamos)
+                cliente = Cliente('REC_', self.contador_reclamos)
                 cliente.reloj_llegada = self.reloj
                 nombre = cliente.nombre()
                 self.clientes[nombre] = cliente
@@ -210,7 +216,7 @@ class SimuladorCorreo:
                 self.iniciar_atencion(2, cliente)
 
             elif evento.startswith('FIN_ENVIO_PAQUETES'):
-                id = int(evento.split('_')[2])
+                id = int(evento.split('_')[4])
                 cliente_nombre = '_'.join(evento.split('_')[3:])
                 servidor = self.servidores_ep[id]
                 servidor['estado'] = 'LIBRE'
@@ -218,9 +224,9 @@ class SimuladorCorreo:
                 if cliente:
                     cliente.estado = 'FINALIZADO'
                 servidor['cliente'] = None
-                # self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'ENVIO_PAQUETES' and f['id'] == id)] 
-                self.fin_atencion = [f for f in self.fin_atencion
-                                     if not (f['tipo'] == "ENVIO_PAQUETES" and f['cliente'].nombre() == cliente.nombre())]
+                self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'ENVIO_PAQUETES' and f['id'] == id)] 
+                # self.fin_atencion = [f for f in self.fin_atencion
+                #                      if not (f['tipo'] == "ENVIO_PAQUETES" and f['cliente'].nombre() == cliente_nombre)]
                 if self.cola_ep:
                     nuevo = self.cola_ep.popleft()
                     self.iniciar_atencion(1, nuevo)           
@@ -232,10 +238,15 @@ class SimuladorCorreo:
                 if cliente:
                     cliente.estado = "FINALIZADO"
                     servidor['cliente'] = None
-            
-                # self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != "RECLAMOS_Y_DEVOLUCIONES"]
-                self.fin_atencion = [f for f in self.fin_atencion
-                                     if not (f['tipo'] == "RECLAMOS_Y_DEVOLUCIONES" and f['cliente'].nombre() == cliente.nombre())]
+                
+                # print('antes', self.fin_atencion[0].nombre())
+                
+                self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != "RECLAMOS_Y_DEVOLUCIONES"]
+                # self.fin_atencion = [f for f in self.fin_atencion
+                #                      if not (f['tipo'] == "RECLAMOS_Y_DEVOLUCIONES" and f['cliente'].nombre() == cliente_nombre)]
+                # print('despues', self.fin_atencion[0].nombre())
+
+
                 if self.cola_ryd:
                     nuevo = self.cola_ryd.popleft()
                     self.iniciar_atencion(2, nuevo)
@@ -243,7 +254,7 @@ class SimuladorCorreo:
             # print(f'Iter {self.iteracion} | Evento: {evento} | Reloj: {self.reloj}')
             self.registrar_estado(evento, info_extra)
             print(f'Iter {self.iteracion} | Evento: {evento} | Reloj: {self.reloj}')
-            print(f'Fin_atencion: {[e["cliente"].nombre() for e in self.fin_atencion]}')
+            # print(f'Fin_atencion: {[e["cliente"].nombre() for e in self.fin_atencion]}')
 
 
             self.iteracion += 1
