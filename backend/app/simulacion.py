@@ -2,7 +2,7 @@ import random
 from copy import copy
 from typing import List, Dict, Any
 from models import Cliente, Servidor
-from utilities import rungeKutta, funcionEDO, media_entre_llegadas, distribucion_exp_neg
+from utilities import rungeKutta, funcionEDO, media_entre_llegadas, distribucion_exp_neg, generar_rnd, distribucion_uniforme, nom_servidor
 import random
 import math
 import pandas as pd
@@ -68,11 +68,21 @@ class SimuladorCorreo:
         self.cont_clientes_atendidos_ryd = 0
         self.acum_uso_ryd = 0
         self.acum_uso_ryd = 0
+        # ALan -> Crafteo de estadísticos.
+        self.fin_atencion = [] # Acá agrega una lista que tiene {Tipo sv, hora_fin_atencion, id servidor, cliente, tiempo_atencion -> runge}
+        self.contador_paquetes = 0
+        self.contador_reclamos = 0
 
+
+        r_comun = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
         # SERVIDORES
-        self.servidor_ep1 = [{'estado': 'LIBRE', 'R': 100, 'cliente': None}]
-        self.servidor_ep2 = [{'estado': 'LIBRE', 'R': 100, 'cliente': None, 'tmpo_remanente': 0.0} ]
-        self.servidor_ryd = [{'estado': 'LIBRE', 'R': 100, 'cliente': None}]
+        #self.servidor_ep1 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None}]
+        #self.servidor_ep2 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None, 't_remanente': 0.0} ]
+        self.servidores_ep = [{'estado': 'LIBRE', 'R': r_comun, 'cliente': None} for _ in range(2)] 
+        self.servidor_ryd = [{'estado': 'LIBRE', 'R': r_comun, 'cliente': None}]
+
+        self.servidor_ep[2]['t_remanente'] = 0.0 # Manejo ambos servidores dentro de un for, pero al servidor_ep[2] le agrego el t remanente :)
+
 
         self.clientes = {}
         #T VIENE POR PARAMETRO
@@ -82,47 +92,53 @@ class SimuladorCorreo:
         #T VIENE POR PARAMETRO
         #R SE CALCULA CON LIM INF Y SUP // esta un UTTILITIES
         #DEMORA ATENCION es la funcoin RK 
-        self.rnd_serv_ep1 = None
-        self.rnd_serv_ep2 = None
+        self.rnd_serv_ep1 = None # Los voy a usar en función del [i] q ocupe en la iteración !!
+        self.rnd_serv_ep2 = None # 
         self.rnd_serv_ryd = None
 
-        self.hora_fin_serv_ep1 = float('inf')
+        self.hora_fin_serv_ep1 = float('inf') # Lo mismo para lo de arriba :)
         self.hora_fin_serv_ep2 = float('inf')
         self.hora_fin_serv_ryd = float('inf')
 
         # EN UTILIES -- distribucion_exp_neg(mu, rnd)
+    
 
         #RND ! TIEMPO ENTRE ! PROXIMA LLEGADA {}
     def generar_llegada(self, mu):
-      rnd = round(random.uniform(0, 0.99), 2)
       # DEVUELVE EL TIEMPO ENTRE 
+      rnd = generar_rnd()
       tiempo = distribucion_exp_neg(mu, rnd)
       return {'rnd': rnd, 'dt': tiempo, 'hora': round(self.reloj + tiempo, 2)}
         
 
-    # def iniciar_atencion(self, tipo, cliente):
-    #     duracion = None
-    #     for i, servidor in enumerate(self.servidores_paquetes if tipo == 'PAQUETE' else self.servidores_reclamos):
-    #         if servidor['estado'] == 'LIBRE':
-    #             servidor['estado'] = 'OCUPADO'
-    #             servidor['cliente'] = cliente
-    #             cliente.estado = 'SIENDO ATENDIDO'
-    #             cliente.reloj_inicio = self.reloj
-    #             C = len(self.cola_paquetes if tipo == 'PAQUETE' else self.cola_reclamos)
-    #             duracion = rungeKutta(servidor['R'], self.reloj, C)
-    #             fin = round(self.reloj + duracion, 2)
-    #             cliente.reloj_fin = fin
-    #             self.fin_atencion.append({'tipo': tipo, 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion})
-    #             break
-    #     else:
-    #         if tipo == 'PAQUETE':
-    #             self.cola_paquetes.append(cliente)
-    #         else:
-    #             self.cola_reclamos.append(cliente)
-    #         cliente.estado = 'EN COLA'
+    def iniciar_atencion(self, tipo, cliente):
+        duracion = None
+        # Alan -> Esto es lo q interprete, tambien queda como lo de juli, pero lo que cambia es la utilización de nuestras funciones.
+        # Aca tipo = 1 va a hacer referencia a Envio de Paquetes ! mientras que 2 hará referencia a Reclamos y Devoluciones.
+        # Ahora esta en función a nuestras funciones definidas en utilities, tiene el mismo funcionamiento
+        for i, servidor in enumerate(self.servidores_ep if tipo == 1 else self.servidor_ryd):
+            if servidor['estado'] == 'LIBRE':
+                servidor['estado'] = 'OCUPADO'
+                servidor['cliente'] = cliente
+                cliente.estado = 'SIENDO ATENDIDO'
+                cliente.reloj_inicio = self.reloj
+                cola = len(self.cola_ep if tipo == 1 else self.cola_ryd)
+                duracion = rungeKutta(funcionEDO, cola, self.r_calc)
+                fin = round(self.reloj + duracion, 2)
+                cliente.reloj_fin = fin
+                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion})
+                break
+        else: 
+            if tipo == 1:
+                self.cola_ep.append(cliente)
+            else:
+                self.cola_ryd.append(cliente)
+            cliente.estado = 'EN COLA'
 
 
+    # Alan -> Esto debería quedar igual que el de juli, no deberia modificar mucho, ta todo check igual revisen
     def registrar_estado(self, evento, info_extra):
+        # Esto es para la columna de eventos :)
         fila = {
             'ITERACION': self.iteracion + 1,
             'RELOJ': round(self.reloj, 2),
@@ -147,11 +163,14 @@ class SimuladorCorreo:
             'rnd_serv_ryd': '-',
             'rk_ryd': '-',
             'hora_fin_serv_ryd': '-',
-            'serv_ep1': self.servidor_ep1[0]['estado'],
-            'serv_ep2': self.servidor_ep2[1]['estado'],
+            #'serv_ep1': self.servidor_ep1[0]['estado'],
+            #'serv_ep2': self.servidor_ep2[1]['estado'],
+            # Con el cambio puesto de los servidores en un for si andaria con indices, antes estaba mal
+            'serv_ep1': self.servidores_ep[0]['estado'],
+            'serv_ep2': self.servidores_ep[1]['estado'],
             'serv_ryd': self.servidor_ryd[0]['estado'],
         }
-
+        # Alan -> Falta hacer esta parte, que es cambiar los eventos en MAyus por los q usamos nosotros !
         # for e in self.fin_atencion:
         #     col_id = e['id']
         #     if e['tipo'] == 'PAQUETE':
@@ -168,6 +187,6 @@ class SimuladorCorreo:
         # fila.update(info_extra)
         # self.vector_estado.append(fila)
         
-        
+    # Una vez revisado esto, hay q hacer la función de ejecutar la simulación         
 
 

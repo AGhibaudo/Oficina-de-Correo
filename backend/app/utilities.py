@@ -1,9 +1,11 @@
 import math
+import random
+
 
 def nom_servidor(tipo):
     if tipo == 1:
-        return "Envio de Paquete"
-    return "Reclamaciones y Devoluciones"
+        return 'ENVIO PAQUETES'
+    return "RECLAMOS Y DEVOLUCIONES"
 
 def distribucion_uniforme(valor_inf, valor_sup, rnd):
     """
@@ -87,9 +89,9 @@ def rungeKutta(f, C, R):
 
     return vec_rk4, t
 
-def crearVector(filas_form):
-    matriz = [[0] * 32 for i in range(range(filas_form))]
-    return matriz
+def generar_rnd():
+    return  round(random.uniform(0, 0.99), 2)
+
 
 def tiempoEntreLlegadas(t1, t2):
     pass
