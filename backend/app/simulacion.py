@@ -137,6 +137,7 @@ class SimuladorCorreo:
 
 
     # Alan -> Esto debería quedar igual que el de juli, no deberia modificar mucho, ta todo check igual revisen
+    # info extra seria para las columnas dinamicas
     def registrar_estado(self, evento, info_extra):
         # Esto es para la columna de eventos :)
         fila = {
@@ -171,21 +172,23 @@ class SimuladorCorreo:
             'serv_ryd': self.servidor_ryd[0]['estado'],
         }
         # Alan -> Falta hacer esta parte, que es cambiar los eventos en MAyus por los q usamos nosotros !
-        # for e in self.fin_atencion:
-        #     col_id = e['id']
-        #     if e['tipo'] == 'PAQUETE':
-        #         fila[f'RND_FIN_P{col_id+1}'] = round(random.uniform(0, 0.99), 2)
-        #         fila[f'RK_FIN_P{col_id+1}'] = e['rk']
-        #         fila[f'FIN_P{col_id+1}'] = e['fin']
-        #     elif e['tipo'] == 'RECLAMO':
-        #         fila['RND_FIN_R1'] = round(random.uniform(0, 0.99), 2)
-        #         fila['RK_FIN_R1'] = e['rk']
-        #         fila['FIN_R1'] = e['fin']
+        for e in self.fin_atencion:
+            # esto seria el sv que lo esta atendiendo
+            col_id = e['id']
+            # aca hay que arreglar el tema del rk
+            if e['tipo'] == 'PAQUETE':
+                fila[f'rnd_fin_p{col_id+1}'] = round(random.uniform(0, 0.99), 2)
+                fila[f'rk_fin_p{col_id+1}'] = e['rk']
+                fila[f'fin_p{col_id+1}'] = e['fin']
+            elif e['tipo'] == 'RECLAMO':
+                fila['rnd_fin_r1'] = round(random.uniform(0, 0.99), 2)
+                fila['rk_fin_r1'] = e['rk']
+                fila['fin_r1'] = e['fin']
 
-        # for nombre, cliente in self.clientes.items():
-        #     fila[nombre] = cliente.estado
-        # fila.update(info_extra)
-        # self.vector_estado.append(fila)
+        for nombre, cliente in self.clientes.items():
+            fila[nombre] = cliente.estado
+        fila.update(info_extra)
+        self.vector_estado.append(fila)
         
     # Una vez revisado esto, hay q hacer la función de ejecutar la simulación         
 
