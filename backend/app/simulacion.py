@@ -38,6 +38,7 @@ class SimuladorCorreo:
         # PRIMERAS COLUMNAS
         self.reloj = 0.0
         self.iteracion = 0
+        self.vector_estado = []
 
         # INICIALIZACION COLAS
         self.cola_ep = deque()
@@ -73,13 +74,12 @@ class SimuladorCorreo:
         self.contador_paquetes = 0
         self.contador_reclamos = 0
 
-
-        r_comun = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
+        r_comun, rnd = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
         # SERVIDORES
         #self.servidor_ep1 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None}]
         #self.servidor_ep2 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None, 't_remanente': 0.0} ]
-        self.servidores_ep = [{'estado': 'LIBRE', 'R': r_comun, 'cliente': None} for _ in range(2)] 
-        self.servidor_ryd = [{'estado': 'LIBRE', 'R': r_comun, 'cliente': None}]
+        self.servidores_ep = [{'estado': 'LIBRE', 'rnd': rnd, 'R': r_comun, 'cliente': None} for _ in range(2)] 
+        self.servidor_ryd = [{'estado': 'LIBRE', 'rnd': rnd,'R': r_comun, 'cliente': None}]
 
         self.servidor_ep[2]['t_remanente'] = 0.0 # Manejo ambos servidores dentro de un for, pero al servidor_ep[2] le agrego el t remanente :)
 
@@ -126,7 +126,7 @@ class SimuladorCorreo:
                 duracion = rungeKutta(funcionEDO, cola, self.r_calc)
                 fin = round(self.reloj + duracion, 2)
                 cliente.reloj_fin = fin
-                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion})
+                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor.rnd,'rk': duracion})
                 break
         else: 
             if tipo == 1:
@@ -176,11 +176,12 @@ class SimuladorCorreo:
             # esto seria el sv que lo esta atendiendo
             col_id = e['id']
             # aca hay que arreglar el tema del rk
-            if e['tipo'] == 'PAQUETE':
-                fila[f'rnd_fin_p{col_id+1}'] = round(random.uniform(0, 0.99), 2)
+            if e['tipo'] == 'ENVIO_PAQUETES':
+                # Alan -> creo q lo solucione i guess.
+                fila[f'rnd_fin_p{col_id+1}'] = e['rnd']
                 fila[f'rk_fin_p{col_id+1}'] = e['rk']
                 fila[f'fin_p{col_id+1}'] = e['fin']
-            elif e['tipo'] == 'RECLAMO':
+            elif e['tipo'] == 'RECLAMOS_Y_DEVOLUCIONES':
                 fila['rnd_fin_r1'] = round(random.uniform(0, 0.99), 2)
                 fila['rk_fin_r1'] = e['rk']
                 fila['fin_r1'] = e['fin']
@@ -190,6 +191,66 @@ class SimuladorCorreo:
         fila.update(info_extra)
         self.vector_estado.append(fila)
         
-    # Una vez revisado esto, hay q hacer la función de ejecutar la simulación         
+    def ejectuar(self):
+        while self.iteracion < self.lineas:
+            eventos = [
+                ('LLegada_EnvPaq', self.llegada_cli_ep['hora']),
+                ('Llegada_RecYDev', self.llegada_cli_ryd['hora'])
+            ] + [(f'Fin_{e["tipo"]}_{e["cliente"].nombre()}', e['fin']) for e in self.fin_atencion]
 
+            evento, instante = min(eventos, key=lambda x: x[1])
+            self.reloj = instante 
+            infor_extra = {}
+            
+            if evento.startswith('Llegada_EnvPaq'):
+                self.contador_paquetes += 1
+                cliente = Cliente('PAQ', self.contador_paquetes)
+                cliente.reloj_llegada = self.reloj
+                nombre = cliente.nombre()
+                self.clientes[nombre] = cliente
+                self.prox_lleg_ep = self.generar_llegada(25)
+                self.iniciar_atencion(1, cliente)
+            
+            elif evento.startswith('Llegada_RecYDev'):
+                self.contador_reclamos += 1
+                cliente = Cliente('REC', self.contador_reclamos)
+                cliente.reloj_llegada = self.reloj
+                nombre = cliente.nombre()
+                self.clientes[nombre] = cliente
+                self.prox_lleg_ryd = self.generar_llegada(15)
+                self.iniciar_atencion(2, cliente)
+
+            elif evento.startswith('FIN_ENVIO_PAQUETES'):
+                id = int(evento.split('_')[2])
+                cliente_nombre = '_'.join(evento.split('_')[3:])
+                servidor = self.servidores_ep[id]
+                servidor['estado'] = 'LIBRE'
+                cliente = servidor['cliente']
+                if cliente:
+                    cliente.estado = 'FINALIZADO'
+                servidor['cliente'] = None
+                self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'ENVIO_PAQUETES' and f['id'] == id)] 
+                if self.cola_ep:
+                    nuevo = self.cola_ep.popleft()
+                    self.iniciar_atencion(1, nuevo)           
+
+            elif evento.startswith('FIN_RECLAMOS_Y_DEVOLUCIONES'):
+                servidor = self.servidor_ryd[0]
+                cliente = servidor['cliente']
+                servidor['estado'] = 'LIBRE'
+                if cliente:
+                    cliente.estado = "FINALIZADO"
+                servidor['cliente'] = None
+                self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != "RECLAMOS_Y_DEVOLUCIONES"]
+                if self.cola_ryd:
+                    nuevo = self.cola_ryd.popleft()
+                    self.iniciar_atencion(2, nuevo)
+
+            self.registrar_estado(evento, info_extra)
+            iteracion += 1
+        df = pd.DataFrame(self.vector_estado)
+        return df
+
+
+    # Una vez revisado esto, hay q hacer la función de ejecutar la simulación         
 

@@ -78,5 +78,6 @@ def simular():
         params.parametroT
     )
     df = sim.ejecutar()
+    print(df.to_string(index=False))
     return df.to_dict(orient="records")  # Devolvemos como lista de dicts
 

@@ -4,15 +4,15 @@ import random
 
 def nom_servidor(tipo):
     if tipo == 1:
-        return 'ENVIO PAQUETES'
-    return "RECLAMOS Y DEVOLUCIONES"
+        return 'ENVIO_PAQUETES'
+    return "RECLAMOS_Y_DEVOLUCIONES"
 
 def distribucion_uniforme(valor_inf, valor_sup, rnd):
     """
     Acá el enunciado no nos indica nada sobre el si R cambia exactamente para cada tipo de servidor, lo que tenemos
     es una distribución uniforme que va desde 100 a 300 que luego será utilizado para el calculo de Runge Kutta de 4to Orden.
     """
-    return valor_inf + (rnd * (valor_sup - valor_inf))
+    return valor_inf + (rnd * (valor_sup - valor_inf)), rnd
 
 def distribucion_exp_neg(mu, rnd):
     # mu = hace referencia a la media
