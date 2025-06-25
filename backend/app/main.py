@@ -56,21 +56,40 @@ async def obtener_forms_params():
         raise HTTPException(404, detail="Aún no se enviaron parámetros")
     return app.state.form_params
 
-# C = 0
-# T = 2
-# R = random.uniform(100, 300)
-# print(f'Valor de R: {R}')
-# trayectoria, t_final = rungeKutta(funcionEDO, C, R)
+# @app.get("/simular")
+# async def correr_simulacion():
+#     if app.state.form_params is None:
+#         raise HTTPException(400, detail="Faltan parámetros del formulario")
+    
+#     # Extraer los parámetros
+# #     lineas = app.state.form_params.lineas
+#     inf = app.state.form_params.limInfExpertizEmpleado
+#     sup = app.state.form_params.limSupExpertizEmpleado
+#     T = app.state.form_params.parametroT
 
-# print(f"Umbral R = {R:.2f} superado en t = {t_final} min")
-#     # Si quieres ver las primeras 5 iter:
-# for paso in trayectoria[:20]:
-#     print(paso)
-#     # Por ejemplo, para enviar al frontend:
-# import json
-# with open('rk4_trayectoria.json','w') as f:
-#         json.dump({
-#             'R (Valor uniforme)': R,
-#             't_final':     t_final,
-#             'trayectoria': trayectoria
-#         }, f, indent=2)
+#     # Elegir aleatoriamente R en ese rango
+#     R = random.uniform(inf, sup)
+
+#     # Ejecutar Runge-Kutta o el simulador completo
+#     trayectoria, t_final = rungeKutta(funcionEDO, C=0, R=R, T=T)
+
+#     return {
+#         "R": round(R, 2),
+#         "t_final": round(t_final, 2),
+#         "trayectoria": trayectoria[:lineas]  # limitar la cantidad si se desea
+#     }
+
+@app.get("/simular")
+def simular():
+    if app.state.form_params is None:
+        raise HTTPException(400, detail="Faltan parámetros del formulario")
+
+    from simuladorcorreo import SimuladorCorreo  # Importa tu clase
+    params = app.state.form_params
+    sim = SimuladorCorreo(
+        tiempo_limite=480,
+        max_iteraciones=params.lineas
+    )
+    df = sim.ejecutar()
+    return df.to_dict(orient="records")  # Devolvemos como lista de dicts
+

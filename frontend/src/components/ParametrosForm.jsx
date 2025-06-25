@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function ParametrosForm() {
+export default function ParametrosForm({ onSimulacionCompleta }) {
   const [lineas, setLineas] = useState(100);
   const [limInf, setLimInf] = useState("");
   const [limSup, setLimSup] = useState("");
@@ -31,6 +31,7 @@ export default function ParametrosForm() {
     }
 
     try {
+      // 1. Enviar parámetros
       const res = await fetch("http://localhost:8000/parametros", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,9 +42,19 @@ export default function ParametrosForm() {
           parametroT: parseFloat(paramT),
         }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Error en servidor");
       setRespuesta(data);
+
+      // 2. Ejecutar simulación automáticamente
+      const simRes = await fetch("http://localhost:8000/simular");
+      const filas = await simRes.json();
+      if (!simRes.ok) throw new Error(filas.detail || "Error al ejecutar simulación");
+
+      // 3. Enviar filas al componente padre (App)
+      onSimulacionCompleta(filas);
+
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -125,7 +136,7 @@ export default function ParametrosForm() {
         {respuesta && (
           <div className="col-12 alert alert-success mt-2 text-center">
             <strong>Respuesta del backend:</strong>
-            <div>{respuesta.mensaje}</div>
+            <div>{respuesta.message}</div>
           </div>
         )}
       </form>
