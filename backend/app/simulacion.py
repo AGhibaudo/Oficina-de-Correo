@@ -43,25 +43,7 @@ class SimuladorCorreo:
         # INICIALIZACION COLAS
         self.cola_ep = deque()
         self.cola_ryd = deque()
-        # cada cola tiene: 
-
-        # # LLEGADA CLIENTES ENVIOS Y PAQUETES
-        # self.rnd_llegada_ep = None
-        # # self.dist_llegada_ep = None
-        # self.tiempo_entre_lleg_cli_ep = 0.0
-        # self.tiempo_prox_lleg_cli_ep = 0.0
-
-        # # LLEGADA CLIENTES RECLAMOS Y DEV
-        # self.rnd_llegada_ryd = None
-        # # self.dist_llegada_ryd = None
-        # self.tiempo_entre_lleg_cliente_ryd = 0.0
-        # self.tiempo_prox_lleg_cliente_ryd = 0.0
-
-        # VER VER 
-        self.llegada_cli_ep = self.generar_llegada(25)
-        self.llegada_cli_ryd = self.generar_llegada(15)
-        self.registrar_estado('INICIO', {})
-
+       
         # ESTADISTICOS
         self.acum_espera_ep = 0
         self.acum_espera_ryd = 0
@@ -69,22 +51,28 @@ class SimuladorCorreo:
         self.cont_clientes_atendidos_ryd = 0
         self.acum_uso_ryd = 0
         self.acum_uso_ryd = 0
+
         # ALan -> Crafteo de estadísticos.
         self.fin_atencion = [] # Acá agrega una lista que tiene {Tipo sv, hora_fin_atencion, id servidor, cliente, tiempo_atencion -> runge}
         self.contador_paquetes = 0
         self.contador_reclamos = 0
 
-        r_comun, rnd = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
+        self.r_comun, self.rnd = distribucion_uniforme(self.lim_inf_exp, self.lim_sup_exp, generar_rnd())
         # SERVIDORES
-        #self.servidor_ep1 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None}]
-        #self.servidor_ep2 = [{'estado': 'LIBRE', 'R': distribucion_uniforme(lim_inf_exp, lim_sup_exp, generar_rnd()), 'cliente': None, 't_remanente': 0.0} ]
-        self.servidores_ep = [{'estado': 'LIBRE', 'rnd': rnd, 'R': r_comun, 'cliente': None} for _ in range(2)] 
-        self.servidor_ryd = [{'estado': 'LIBRE', 'rnd': rnd,'R': r_comun, 'cliente': None}]
+        
+        self.servidores_ep = [{'estado': 'LIBRE', 'rnd': self.rnd, 'R': self.r_comun, 'cliente': None} for _ in range(2)] 
+        self.servidor_ryd = [{'estado': 'LIBRE', 'rnd': self.rnd,'R': self.r_comun, 'cliente': None}]
 
-        self.servidor_ep[2]['t_remanente'] = 0.0 # Manejo ambos servidores dentro de un for, pero al servidor_ep[2] le agrego el t remanente :)
+        self.servidores_ep[1]['t_remanente'] = 0.0 # Manejo ambos servidores dentro de un for, pero al servidor_ep[2] le agrego el t remanente :)
 
 
+ # VER VER 
+        self.llegada_cli_ep = self.generar_llegada(25)
+        self.llegada_cli_ryd = self.generar_llegada(15)
+        # self.llegada_cli_ep = None
+        # self.llegada_cli_ryd = None
         self.clientes = {}
+
         #T VIENE POR PARAMETRO
         # T | RND | VALOR DE R (100 0 300)| DEMORA DE AT | HORA FIN  
        # POR CADA UNO DE LOS TRES SERVIDORES !!!!!
@@ -100,6 +88,8 @@ class SimuladorCorreo:
         self.hora_fin_serv_ep2 = float('inf')
         self.hora_fin_serv_ryd = float('inf')
 
+        self.registrar_estado('INICIO', {})
+
         # EN UTILIES -- distribucion_exp_neg(mu, rnd)
     
 
@@ -113,6 +103,7 @@ class SimuladorCorreo:
 
     def iniciar_atencion(self, tipo, cliente):
         duracion = None
+        vector_kutta = None
         # Alan -> Esto es lo q interprete, tambien queda como lo de juli, pero lo que cambia es la utilización de nuestras funciones.
         # Aca tipo = 1 va a hacer referencia a Envio de Paquetes ! mientras que 2 hará referencia a Reclamos y Devoluciones.
         # Ahora esta en función a nuestras funciones definidas en utilities, tiene el mismo funcionamiento
@@ -123,10 +114,10 @@ class SimuladorCorreo:
                 cliente.estado = 'SIENDO ATENDIDO'
                 cliente.reloj_inicio = self.reloj
                 cola = len(self.cola_ep if tipo == 1 else self.cola_ryd)
-                duracion = rungeKutta(funcionEDO, cola, self.r_calc)
+                vector_kutta, duracion = rungeKutta(funcionEDO, cola, self.r_comun)
                 fin = round(self.reloj + duracion, 2)
                 cliente.reloj_fin = fin
-                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor.rnd,'rk': duracion})
+                self.fin_atencion.append({'tipo': nom_servidor(tipo), 'fin': fin, 'id': i, 'cliente': cliente, 'rnd': servidor['rnd'],'rk': duracion})
                 break
         else: 
             if tipo == 1:
@@ -134,7 +125,6 @@ class SimuladorCorreo:
             else:
                 self.cola_ryd.append(cliente)
             cliente.estado = 'EN COLA'
-
 
     # Alan -> Esto debería quedar igual que el de juli, no deberia modificar mucho, ta todo check igual revisen
     # info extra seria para las columnas dinamicas
@@ -164,9 +154,7 @@ class SimuladorCorreo:
             'rnd_serv_ryd': '-',
             'rk_ryd': '-',
             'hora_fin_serv_ryd': '-',
-            #'serv_ep1': self.servidor_ep1[0]['estado'],
-            #'serv_ep2': self.servidor_ep2[1]['estado'],
-            # Con el cambio puesto de los servidores en un for si andaria con indices, antes estaba mal
+           
             'serv_ep1': self.servidores_ep[0]['estado'],
             'serv_ep2': self.servidores_ep[1]['estado'],
             'serv_ryd': self.servidor_ryd[0]['estado'],
@@ -178,46 +166,47 @@ class SimuladorCorreo:
             # aca hay que arreglar el tema del rk
             if e['tipo'] == 'ENVIO_PAQUETES':
                 # Alan -> creo q lo solucione i guess.
-                fila[f'rnd_fin_p{col_id+1}'] = e['rnd']
-                fila[f'rk_fin_p{col_id+1}'] = e['rk']
-                fila[f'fin_p{col_id+1}'] = e['fin']
+                fila[f'rnd_fin_ep{col_id+1}'] = e['rnd']
+                fila[f'rk_fin_ep{col_id+1}'] = e['rk']
+                fila[f'fin_ep{col_id+1}'] = e['fin']
             elif e['tipo'] == 'RECLAMOS_Y_DEVOLUCIONES':
-                fila['rnd_fin_r1'] = round(random.uniform(0, 0.99), 2)
-                fila['rk_fin_r1'] = e['rk']
-                fila['fin_r1'] = e['fin']
+                fila['rnd_fin_ryd'] = e['rnd']
+                fila['rk_fin_ryd'] = e['rk']
+                fila['fin_ryd'] = e['fin']
 
         for nombre, cliente in self.clientes.items():
             fila[nombre] = cliente.estado
         fila.update(info_extra)
         self.vector_estado.append(fila)
         
-    def ejectuar(self):
+    def ejecutar(self):
         while self.iteracion < self.lineas:
             eventos = [
-                ('LLegada_EnvPaq', self.llegada_cli_ep['hora']),
+                ('Llegada_EnvPaq', self.llegada_cli_ep['hora']),
                 ('Llegada_RecYDev', self.llegada_cli_ryd['hora'])
             ] + [(f'Fin_{e["tipo"]}_{e["cliente"].nombre()}', e['fin']) for e in self.fin_atencion]
 
             evento, instante = min(eventos, key=lambda x: x[1])
             self.reloj = instante 
-            infor_extra = {}
+            info_extra = {}
             
-            if evento.startswith('Llegada_EnvPaq'):
+            if evento == 'Llegada_EnvPaq' and self.reloj == self.llegada_cli_ep['hora']:
                 self.contador_paquetes += 1
                 cliente = Cliente('PAQ', self.contador_paquetes)
                 cliente.reloj_llegada = self.reloj
                 nombre = cliente.nombre()
                 self.clientes[nombre] = cliente
-                self.prox_lleg_ep = self.generar_llegada(25)
+                # self.prox_lleg_ep = self.generar_llegada(25)
+                self.llegada_cli_ep = self.generar_llegada(25)
                 self.iniciar_atencion(1, cliente)
             
-            elif evento.startswith('Llegada_RecYDev'):
+            elif evento == 'Llegada_RecYDev' and self.reloj == self.llegada_cli_ryd['hora']:
                 self.contador_reclamos += 1
                 cliente = Cliente('REC', self.contador_reclamos)
                 cliente.reloj_llegada = self.reloj
                 nombre = cliente.nombre()
                 self.clientes[nombre] = cliente
-                self.prox_lleg_ryd = self.generar_llegada(15)
+                self.llegada_cli_ryd = self.generar_llegada(15)
                 self.iniciar_atencion(2, cliente)
 
             elif evento.startswith('FIN_ENVIO_PAQUETES'):
@@ -229,7 +218,9 @@ class SimuladorCorreo:
                 if cliente:
                     cliente.estado = 'FINALIZADO'
                 servidor['cliente'] = None
-                self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'ENVIO_PAQUETES' and f['id'] == id)] 
+                # self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'ENVIO_PAQUETES' and f['id'] == id)] 
+                self.fin_atencion = [f for f in self.fin_atencion
+                                     if not (f['tipo'] == "ENVIO_PAQUETES" and f['cliente'].nombre() == cliente.nombre())]
                 if self.cola_ep:
                     nuevo = self.cola_ep.popleft()
                     self.iniciar_atencion(1, nuevo)           
@@ -240,14 +231,22 @@ class SimuladorCorreo:
                 servidor['estado'] = 'LIBRE'
                 if cliente:
                     cliente.estado = "FINALIZADO"
-                servidor['cliente'] = None
-                self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != "RECLAMOS_Y_DEVOLUCIONES"]
+                    servidor['cliente'] = None
+            
+                # self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != "RECLAMOS_Y_DEVOLUCIONES"]
+                self.fin_atencion = [f for f in self.fin_atencion
+                                     if not (f['tipo'] == "RECLAMOS_Y_DEVOLUCIONES" and f['cliente'].nombre() == cliente.nombre())]
                 if self.cola_ryd:
                     nuevo = self.cola_ryd.popleft()
                     self.iniciar_atencion(2, nuevo)
-
+                    
+            # print(f'Iter {self.iteracion} | Evento: {evento} | Reloj: {self.reloj}')
             self.registrar_estado(evento, info_extra)
-            iteracion += 1
+            print(f'Iter {self.iteracion} | Evento: {evento} | Reloj: {self.reloj}')
+            print(f'Fin_atencion: {[e["cliente"].nombre() for e in self.fin_atencion]}')
+
+
+            self.iteracion += 1
         df = pd.DataFrame(self.vector_estado)
         return df
 

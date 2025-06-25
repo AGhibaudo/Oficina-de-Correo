@@ -16,6 +16,7 @@ app = FastAPI()
 # tienen q tener la dependencia -> pip install uvicorn !!!!!!!!!!!
 # uvicorn main:app --reload -> Parense en app !!!
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],  # frontend en React

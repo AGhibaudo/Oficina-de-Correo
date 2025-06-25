@@ -29,6 +29,7 @@ function CuadroCabecera() {
       </tr>
 
       <tr>
+      <th className="table-warning sticky-col">IT</th>
         <th className="table-warning sticky-col">RELOJ</th>
         <th className="table-warning sticky-col-2">EVENTO</th>
         <th className="table-dark sticky-col-3">RND</th>
