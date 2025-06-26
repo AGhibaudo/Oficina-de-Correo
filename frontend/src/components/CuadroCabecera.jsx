@@ -70,7 +70,6 @@ function CuadroCabecera() {
         <th className="table-secondary">TMPO ACUM DE ESPERA</th>
         <th className="table-secondary">CONT CLIENTES ATENDIDOS</th>
         <th className="table-secondary">TMPO ACUM USO</th>
-        <th className="table-dark">/</th>
         <th className="table-secondary">TMPO ACUM DE ESPERA</th>
         <th className="table-secondary">CONT CLIENTES ATENDIDOS</th>
         <th className="table-secondary">TMPO ACUM USO</th>

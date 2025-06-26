@@ -64,8 +64,14 @@ class SimuladorCorreo:
         self.clientes = {}
         self.contador_paquetes = 0
         self.contador_reclamos = 0
-       
-       
+
+        self.acum_espera_paq = 0.0
+        self.acum_espera_rec = 0.0
+        self.cont_clientes_atendidos_paq = 0
+        self.cont_clientes_atendidos_rec = 0
+        self.acum_uso_ryd = 0.0
+        self.reloj_anterior = 0.0
+    
         #RND ! TIEMPO ENTRE ! PROXIMA LLEGADA {}
         self.prox_llegada_paquete = self.generar_llegada(25)
         self.prox_llegada_reclamo = self.generar_llegada(15)
@@ -82,6 +88,18 @@ class SimuladorCorreo:
                 servidor['estado'] = 'OCUPADO'
                 servidor['cliente'] = cliente
                 cliente.estado = 'SIENDO ATENDIDO'
+                
+                # para estadisticos
+
+                if tipo == 'PAQUETE':
+                    espera = self.reloj - cliente.reloj_llegada
+                    self.acum_espera_paq += espera
+                if tipo == 'RECLAMO':
+                    espera = self.reloj - cliente.reloj_llegada
+                    self.acum_espera_rec += espera
+
+
+
                 cliente.reloj_inicio = self.reloj
                 C = len(self.cola_paquetes if tipo == 'PAQUETE' else self.cola_reclamos)
                 duracion = rungeKutta(servidor['R'], self.reloj, C)
@@ -136,14 +154,13 @@ class SimuladorCorreo:
             'FIN_R1': '-',
             'SERV_R1': self.servidores_reclamos[0]['estado'],
 
-            'ACUM_T_ESPERA_P': '-',
-            'CONT_CLI_AT_P': '-',
+            'ACUM_T_ESPERA_P': round(self.acum_espera_paq, 2),
+            'CONT_CLI_AT_P': self.cont_clientes_atendidos_paq,
             'ACUM_T_USO_P': '-',
 
-            'ACUM_T_ESPERA_R': '-',
-            'CONT_CLI_AT_R': '-',
-            'ACUM_T_USO_R': '-',
-
+            'ACUM_T_ESPERA_R': round(self.acum_espera_rec, 2),
+            'CONT_CLI_AT_R': self.cont_clientes_atendidos_rec,
+            'ACUM_T_USO_R': round(self.acum_uso_ryd, 2),
 
         }
         for e in self.fin_atencion:
@@ -201,6 +218,7 @@ class SimuladorCorreo:
                 cliente = servidor['cliente']
                 if cliente:
                     cliente.estado = 'FINALIZADO'
+                    self.cont_clientes_atendidos_paq += 1
                 servidor['cliente'] = None
                 self.fin_atencion = [f for f in self.fin_atencion if not (f['tipo'] == 'PAQUETE' and f['id'] == id)]
                 if self.cola_paquetes:
@@ -213,13 +231,34 @@ class SimuladorCorreo:
                 servidor['estado'] = 'LIBRE'
                 if cliente:
                     cliente.estado = 'FINALIZADO'
+                    self.cont_clientes_atendidos_rec += 1
                 servidor['cliente'] = None
                 self.fin_atencion = [f for f in self.fin_atencion if f['tipo'] != 'RECLAMO']
                 if self.cola_reclamos:
                     nuevo = self.cola_reclamos.popleft()
                     self.iniciar_atencion('RECLAMO', nuevo)
 
+            if self.servidores_reclamos[0]['estado'] == 'OCUPADO':
+                delta = self.reloj - self.reloj_anterior
+                self.acum_uso_ryd += delta
+
+            uso_paq = 0.0
+            for servidor in self.servidores_paquetes:
+                if servidor['estado'] == 'OCUPADO':
+                    uso_paq += self.reloj - self.reloj_anterior
+
+            acum_uso_paq = 0.0
+            if self.vector_estado:
+                ultima_fila = self.vector_estado[-1]
+                if isinstance(ultima_fila['ACUM_T_USO_P'], (int, float)):
+                    acum_uso_paq = ultima_fila['ACUM_T_USO_P']
+                elif str(ultima_fila['ACUM_T_USO_P']).replace('.', '', 1).isdigit():
+                    acum_uso_paq = float(ultima_fila['ACUM_T_USO_P'])
+
+            info_extra['ACUM_T_USO_P'] = round(acum_uso_paq + uso_paq, 2)
+
             self.registrar_estado(evento, info_extra)
+            self.reloj_anterior = self.reloj
             self.iteracion += 1
 
         df = pd.DataFrame(self.vector_estado)
