@@ -145,7 +145,6 @@ class SimuladorCorreo:
                     self.acum_espera_rec += espera
 
 
-
                 cliente.reloj_inicio = self.reloj
                 C = len(self.cola_paquetes if tipo == 'PAQUETE' else self.cola_reclamos)
                 res_rk = rungeKutta(servidor['R'], self.reloj, C)
@@ -192,7 +191,7 @@ class SimuladorCorreo:
 
             'T_R1': self.param_t,
             'TIPO_R1': '-',
-            'RES_RK_R1': '-',
+            'RK_FIN_R1': '-',
             'FIN_R1': '-',
             'SERV_R1': self.servidores_reclamos[0]['estado'],
 
@@ -262,7 +261,7 @@ class SimuladorCorreo:
 
             elif evento.startswith('FIN_PAQUETE'):
                 id = int(evento.split('_')[2])
-                cliente_nombre = '_'.join(evento.split('_')[3:])
+                cliente_nombre =  '_'.join(evento.split('_')[3:])
                 servidor = self.servidores_paquetes[id]
                 servidor['estado'] = 'LIBRE'
                 cliente = servidor['cliente']
@@ -313,6 +312,27 @@ class SimuladorCorreo:
 
         df = pd.DataFrame(self.vector_estado)
         df = df.fillna("")
-        return df
+        # return df
 
+        reloj_final = self.reloj
+
+        descansos = reloj_final // 60
+        retraso_total = descansos * 5
+   
+        estadisticas = {
+            "espera_promedio_p1": self.acum_espera_paq / self.cont_clientes_atendidos_paq if self.cont_clientes_atendidos_paq > 0 else 0,
+            "espera_promedio_p2": self.acum_espera_paq / self.cont_clientes_atendidos_paq if self.cont_clientes_atendidos_paq > 0 else 0,
+            "espera_promedio_r1": self.acum_espera_rec / self.cont_clientes_atendidos_rec if self.cont_clientes_atendidos_rec > 0 else 0,
+
+            "ocupacion_p": ((float(self.vector_estado[-1]['ACUM_T_USO_P'])/2 )/ reloj_final) * 100 if reloj_final > 0 else 0,
+            "ocupacion_r1": (self.acum_uso_ryd / reloj_final) * 100 if reloj_final > 0 else 0,
+        
+            "cambio_tiempo_esp": (retraso_total  + self.acum_espera_paq )
+
+        }
+
+        return {
+            "filas": df.to_dict(orient="records") ,
+            "estadisticas": estadisticas
+        }
 

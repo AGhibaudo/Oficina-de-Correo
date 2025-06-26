@@ -6,11 +6,14 @@ import Cuadro from "./components/Cuadro";
 import ParametrosForm from "./components/ParametrosForm";
 
 function App() {
-  const [filas, setFilas] = useState([]); // ⬅️ Estado global para las filas simuladas
+  const [filas, setFilas] = useState([]); 
 
-  // Función que se pasa al formulario
   const onSimulacionCompleta = (nuevasFilas) => {
-    setFilas(nuevasFilas);
+    const primeras150 = nuevasFilas.slice(0, 150);
+    const ultimas150 = nuevasFilas.slice(-150);
+    const filaSeparadora = { EVENTO: '... FILAS OMITIDAS ...' };
+    const datosReducidos = [...primeras150, filaSeparadora, ...ultimas150];
+    setFilas(datosReducidos);
   };
 
   return (

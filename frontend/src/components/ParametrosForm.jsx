@@ -5,9 +5,10 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
   const [paramT, setParamT] = useState("");
   const [experiencia, setExperiencia] = useState({
     paquetes: { s1: "aprendiz", s2: "aprendiz" },
-    ryd:     { s1: "aprendiz" },
+    ryd: { s1: "aprendiz" },
   });
   const [respuesta, setRespuesta] = useState(null);
+  const [estadisticas, setEstadisticas] = useState(null);
   const [error, setError] = useState(null);
 
   const handleExperienciaChange = (categoria, servidor, valor) => {
@@ -53,11 +54,14 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
 
       // 2) Ejecutar simulación automáticamente
       const simRes = await fetch("http://localhost:8000/simular");
-      const filas = await simRes.json();
+      const datos = await simRes.json();
+      const filas = await datos['filas']
+      const resumen = datos['estadisticas'];
       if (!simRes.ok) throw new Error(filas.detail || "Error al ejecutar simulación");
 
       // 3) Devolver filas al componente padre
       onSimulacionCompleta(filas);
+      setEstadisticas(resumen);
 
     } catch (err) {
       console.error(err);
@@ -68,6 +72,7 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Parámetros de Simulación</h2>
+
       <form
         onSubmit={handleSubmit}
         className="mx-auto row row-cols-1 row-cols-md-2 g-3"
@@ -184,6 +189,38 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
           </div>
         )}
       </form>
+      {estadisticas && (
+        <div className="col-12 mt-4">
+          <h5>Estadísticas Finales</h5>
+          <table className="table table-warning table-sm table-bordered mt-2">
+            <thead className="table-dark">
+              <tr>
+                <th>Servidor</th>
+                <th>Tiempo de Espera Promedio (min)</th>
+                <th>% de Ocupación</th>
+                <th>Tiempo Espera Modif</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Paquetes P1 y P2</td>
+                <td>{estadisticas.espera_promedio_p1.toFixed(2)}</td>
+                <td>{estadisticas.ocupacion_p.toFixed(2)}%</td>
+                <td>{estadisticas.cambio_tiempo_esp.toFixed(2)}</td>
+
+              </tr>
+              <tr>
+                <td>Reclamos R1</td>
+                <td>{estadisticas.espera_promedio_r1.toFixed(2)}</td>
+                <td>{estadisticas.ocupacion_r1.toFixed(2)}%</td>
+                <td>-</td>
+
+              </tr>
+        
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

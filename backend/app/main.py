@@ -85,11 +85,26 @@ async def obtener_forms_params():
     return app.state.form_params
 
 
+# @app.get("/simular")
+# def simular():
+#     if app.state.form_params is None:
+#         raise HTTPException(400, detail="Faltan parámetros del formulario")
+#  # Importa tu clase
+#     params = app.state.form_params
+
+#     sim = SimuladorCorreo(
+#         params.lineas,
+#         params.parametroT,
+#         params.experienciaEmpleados
+#     )
+#     df = sim.ejecutar()
+#     print(df.to_string(index=False))
+#     return df.to_dict(orient="records") 
 @app.get("/simular")
 def simular():
     if app.state.form_params is None:
         raise HTTPException(400, detail="Faltan parámetros del formulario")
- # Importa tu clase
+
     params = app.state.form_params
 
     sim = SimuladorCorreo(
@@ -97,10 +112,9 @@ def simular():
         params.parametroT,
         params.experienciaEmpleados
     )
-    df = sim.ejecutar()
-    print(df.to_string(index=False))
-    return df.to_dict(orient="records") 
 
+    resultado = sim.ejecutar()
+    return resultado
 # @app.get("/simular")
 # def simular():
 #     if app.state.form_params is None:
