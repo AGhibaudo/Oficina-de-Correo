@@ -16,40 +16,43 @@ def distribucion_exponencial(tasa_por_hora):
 def funcionEDO(t, R, C, T):
     return C + 0.2 * T + t**2
 
-# def rungeKutta(R_inicial, T, C, h=1):
-#     t = 0.0
-#     R = R_inicial
-#     while R > 0:
-#         k1 = h * funcionEDO(t, R, C, T)
-#         k2 = h * funcionEDO(t + h/2, R + k1/2, C, T)
-#         k3 = h * funcionEDO(t + h/2, R + k2/2, C, T)
-#         k4 = h * funcionEDO(t + h, R + k3, C, T)
-#         R -= (k1 + 2*k2 + 2*k3 + k4) / 6
-#         t += h
-#     return round(t, 2)
-
-def rungeKutta(R_inicial, T, C, h=1):
-    t = 0.0
-    R = R_inicial
+def rungeKutta(R, T, C, h=1):
+    """
+    Integra dR/dt = f(C, T, t) desde R_act = 0 hasta superar R.
+    Devuelve los primeros 2 pasos, una línea suspensiva y el paso final.
+    """
     pasos = []
+    R_act = 0.00
+    t = 0.00
 
-    while R > 0:
-        k1 = h * funcionEDO(t, R, C, T)
-        k2 = h * funcionEDO(t + h/2, R + k1/2, C, T)
-        k3 = h * funcionEDO(t + h/2, R + k2/2, C, T)
-        k4 = h * funcionEDO(t + h, R + k3, C, T)
+    while R_act <= R:
+        k1 = funcionEDO(t, R, C, T)
+        k2 = funcionEDO(t + h/2, R, C, T)
+        k3 = funcionEDO(t + h/2, R, C, T)
+        k4 = funcionEDO(t + h, R, C, T)
 
         pasos.append({
             "t": round(t, 2),
-            "R": round(R, 2),
+            "R": round(R_act, 2),  # mostrar R acumulado
             "k1": round(k1, 2),
             "k2": round(k2, 2),
             "k3": round(k3, 2),
             "k4": round(k4, 2),
         })
 
-        R -= (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        delta_R = (h / 6) * (k1 + 2*k2 + 2*k3 + k4)
+        R_act += delta_R
         t += h
+
+    # Agregar última fila que marca el final
+    pasos.append({
+        "t": round(t, 2),
+        "R": round(R_act, 2),
+        "k1": "-",
+        "k2": "-",
+        "k3": "-",
+        "k4": "-",
+    })
 
     return {
         "resultado": round(t, 2),

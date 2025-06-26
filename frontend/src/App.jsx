@@ -9,11 +9,11 @@ function App() {
   const [filas, setFilas] = useState([]); 
 
   const onSimulacionCompleta = (nuevasFilas) => {
-    const primeras150 = nuevasFilas.slice(0, 150);
-    const ultimas150 = nuevasFilas.slice(-150);
-    const filaSeparadora = { EVENTO: '... FILAS OMITIDAS ...' };
-    const datosReducidos = [...primeras150, filaSeparadora, ...ultimas150];
-    setFilas(datosReducidos);
+    // const primeras150 = nuevasFilas.slice(0, 150);
+    // const ultimas150 = nuevasFilas.slice(-150);
+    // const filaSeparadora = { EVENTO: '... FILAS OMITIDAS ...' };
+    // const datosReducidos = [...primeras150, filaSeparadora, ...ultimas150];
+    setFilas(nuevasFilas);
   };
 
   return (

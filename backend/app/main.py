@@ -1,15 +1,12 @@
 import random
-from utilities import *
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
-from fastapi import HTTPException
-from simulacion import SimuladorCorreo 
-from typing import Literal # Se agrega
-from fastapi import Request
+
+from simulacion import SimuladorCorreo, rungeKutta
 
 
 app = FastAPI()
@@ -115,32 +112,14 @@ def simular():
 
     resultado = sim.ejecutar()
     return resultado
-# @app.get("/simular")
-# def simular():
-#     if app.state.form_params is None:
-#         raise HTTPException(400, detail="Faltan parámetros del formulario")
 
-#     params = app.state.form_params
+@app.get("/runge-kutta")
+def obtener_detalle_rk(
+    R: float = Query(..., description="Valor inicial de R"),
+    T: float = Query(..., description="Tiempo T"),
+    C: float = Query(..., description="Cola C"),
+):
+    resultado = rungeKutta(R, T, C)
+    pasos = resultado["detalle"]
 
-#     sim = SimuladorCorreo(
-#         params.lineas,
-#         params.parametroT,
-#         params.experienciaEmpleados
-#     )
-#     df = sim.ejecutar()
-
-#     # Convertimos el DataFrame a lista de diccionarios (una por fila)
-#     tabla = df.to_dict(orient="records")
-
-#     # Extraemos los detalles de cada atención (Runge-Kutta) de fin_atencion
-#     detalles_rk = {}
-#     for evento in sim.fin_atencion:
-#         cliente = evento["cliente"].nombre()  # ejemplo: PAQ1 o REC2
-#         servidor_id = evento["id"]
-#         clave = f"{cliente}_{servidor_id}"
-#         detalles_rk[clave] = evento.get("detalle_rk", [])
-
-#     return JSONResponse(content={
-#         "tabla": tabla,
-#         "detallesRK": detalles_rk
-#     })
+    return pasos

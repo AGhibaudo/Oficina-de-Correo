@@ -49,7 +49,7 @@ thead.fijada {
   position: sticky;
   top: 0; /* Ajustar segÃºn altura real del thead */
   background: white;
-  z-index: 10000;
+  z-index: 100;
 }
 
 /* === Columnas fijas (1 a 3) === */
@@ -58,7 +58,7 @@ tr th.fijada {
   top: 0;
   left: 0; 
   background: #fff157;
-  z-index: 10000;
+  z-index: 100;
 }
 
 /* === Contenido de celdas === */
@@ -84,7 +84,7 @@ tbody td {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 100000;
 }
 
 .modal-contenido {
