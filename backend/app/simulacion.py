@@ -96,6 +96,14 @@ class SimuladorCorreo:
                 self.cola_reclamos.append(cliente)
             cliente.estado = 'EN COLA'
 
+
+# tiempo de espera promedio
+
+# acum tiempo de espera
+# cant clientes atendidos
+# porcentaje de ocupacion
+# cant parcial (acum tiempo ocupado)
+# cant total (hora ultima iteracion)
     def registrar_estado(self, evento, info_extra):
         fila = {
             'ITERACION': self.iteracion + 1,
@@ -109,18 +117,34 @@ class SimuladorCorreo:
             'PROX_LLEGADA_REC': self.prox_llegada_reclamo['hora'],
             'COLA_PAQ': len(self.cola_paquetes),
             'COLA_REC': len(self.cola_reclamos),
-            'RND_FIN_P1': '-',
-            'RK_FIN_P1': '-',
+
+            'T_P1': '-',
+            'R_P1': '-',
+            'RES_RK_P1': '-',
             'FIN_P1': '-',
-            'RND_FIN_P2': '-',
-            'RK_FIN_P2': '-',
-            'FIN_P2': '-',
-            'RND_FIN_R1': '-',
-            'RK_FIN_R1': '-',
-            'FIN_R1': '-',
             'SERV_P1': self.servidores_paquetes[0]['estado'],
+
+            'T_P2': '-',
+            'R_P2': '-',
+            'RES_RK_P2': '-',
+            'FIN_P2': '-',
             'SERV_P2': self.servidores_paquetes[1]['estado'],
+
+            'T_R1': '-',
+            'R_R1': '-',
+            'RES_RK_R1': '-',
+            'FIN_R1': '-',
             'SERV_R1': self.servidores_reclamos[0]['estado'],
+
+            'ACUM_T_ESPERA_P': '-',
+            'CONT_CLI_AT_P': '-',
+            'ACUM_T_USO_P': '-',
+
+            'ACUM_T_ESPERA_R': '-',
+            'CONT_CLI_AT_R': '-',
+            'ACUM_T_USO_R': '-',
+
+
         }
         for e in self.fin_atencion:
             col_id = e['id']
@@ -157,7 +181,7 @@ class SimuladorCorreo:
                 self.clientes[nombre] = cliente
                 self.prox_llegada_paquete = self.generar_llegada(25)
                 self.iniciar_atencion('PAQUETE', cliente)
-                # evento = f'LLEGADA_PAQ_{cliente.id}'
+                evento = f'LLEGADA_PAQ_{cliente.id}'
 
             elif evento.startswith('LLEGADA_REC'):
                 self.contador_reclamos += 1
@@ -167,7 +191,7 @@ class SimuladorCorreo:
                 self.clientes[nombre] = cliente
                 self.prox_llegada_reclamo = self.generar_llegada(15)
                 self.iniciar_atencion('RECLAMO', cliente)
-                # evento = f'LLEGADA_REC_{cliente}'
+                evento = f'LLEGADA_REC_{cliente.id}'
 
             elif evento.startswith('FIN_PAQUETE'):
                 id = int(evento.split('_')[2])
