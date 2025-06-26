@@ -64,8 +64,19 @@ class SimuladorCorreo:
         self.cola_paquetes = deque()
         self.cola_reclamos = deque()
 
-        self.servidores_paquetes = [{'estado': 'LIBRE', 'R': 100, 'cliente': None} for _ in range(2)]
-        self.servidores_reclamos = [{'estado': 'LIBRE', 'R': 100, 'cliente': None}]
+        self.servidores_paquetes = [
+    {
+        'estado': 'LIBRE',
+        'R': 300 if experienciaEmpleados.paquetes.s1 == 'aprendiz' else 100,
+        'cliente': None
+    },
+    {
+        'estado': 'LIBRE',
+        'R': 300 if experienciaEmpleados.paquetes.s2 == 'aprendiz' else 100,
+        'cliente': None
+    }
+]
+        self.servidores_reclamos = [{'estado': 'LIBRE', 'R': 300 if experienciaEmpleados.ryd.s1 == "aprendiz" else 100, 'cliente': None}]
 
         self.fin_atencion = []
         self.clientes = {}
@@ -136,20 +147,20 @@ class SimuladorCorreo:
             'COLA_PAQ': len(self.cola_paquetes),
             'COLA_REC': len(self.cola_reclamos),
 
-            'T_P1': '-',
-            'R_P1': '-',
-            'RES_RK_P1': '-',
+            'T_P1': self.param_t,
+            'TIPO_P1': '-',
+            'RK_FIN_P1': '-',
             'FIN_P1': '-',
             'SERV_P1': self.servidores_paquetes[0]['estado'],
 
-            'T_P2': '-',
-            'R_P2': '-',
-            'RES_RK_P2': '-',
+            'T_P2': self.param_t,
+            'TIPO_P2': '-',
+            'RK_FIN_P2': '-',
             'FIN_P2': '-',
             'SERV_P2': self.servidores_paquetes[1]['estado'],
 
-            'T_R1': '-',
-            'R_R1': '-',
+            'T_R1': self.param_t,
+            'TIPO_R1': '-',
             'RES_RK_R1': '-',
             'FIN_R1': '-',
             'SERV_R1': self.servidores_reclamos[0]['estado'],
@@ -163,14 +174,17 @@ class SimuladorCorreo:
             'ACUM_T_USO_R': round(self.acum_uso_ryd, 2),
 
         }
+        fila['TIPO_P1'] = 'aprendiz' if self.servidores_paquetes[0]['R'] == 300 else 'experto'
+        fila['TIPO_P2'] = 'aprendiz' if self.servidores_paquetes[1]['R'] == 300 else 'experto'
+        fila['TIPO_R1'] = 'aprendiz' if self.servidores_reclamos[0]['R'] == 300 else 'experto'
         for e in self.fin_atencion:
             col_id = e['id']
             if e['tipo'] == 'PAQUETE':
-                fila[f'RND_FIN_P{col_id+1}'] = round(random.uniform(0, 0.99), 2)
+                # fila[f'RND_FIN_P{col_id+1}'] = round(random.uniform(0, 0.99), 2)
                 fila[f'RK_FIN_P{col_id+1}'] = e['rk']
                 fila[f'FIN_P{col_id+1}'] = e['fin']
             elif e['tipo'] == 'RECLAMO':
-                fila['RND_FIN_R1'] = round(random.uniform(0, 0.99), 2)
+                # fila['RND_FIN_R1'] = round(random.uniform(0, 0.99), 2)
                 fila['RK_FIN_R1'] = e['rk']
                 fila['FIN_R1'] = e['fin']
 
