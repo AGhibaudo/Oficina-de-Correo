@@ -157,6 +157,7 @@ class SimuladorCorreo:
                 self.clientes[nombre] = cliente
                 self.prox_llegada_paquete = self.generar_llegada(25)
                 self.iniciar_atencion('PAQUETE', cliente)
+                # evento = f'LLEGADA_PAQ_{cliente.id}'
 
             elif evento.startswith('LLEGADA_REC'):
                 self.contador_reclamos += 1
@@ -166,6 +167,7 @@ class SimuladorCorreo:
                 self.clientes[nombre] = cliente
                 self.prox_llegada_reclamo = self.generar_llegada(15)
                 self.iniciar_atencion('RECLAMO', cliente)
+                # evento = f'LLEGADA_REC_{cliente}'
 
             elif evento.startswith('FIN_PAQUETE'):
                 id = int(evento.split('_')[2])

@@ -2,8 +2,8 @@ import React from "react";
 
 function CuadroCabecera() {
   return (
-    <thead>
-      <tr>
+    <thead className="fijada">
+      <tr >
         <th colSpan={3} className="sticky-col"></th>
         <th colSpan={6} className="table-dark">SERVICIOS</th>
         <th colSpan={2}></th>
@@ -13,7 +13,7 @@ function CuadroCabecera() {
 
       </tr>
 
-      <tr>
+      <tr >
         <th colSpan={3} className="sticky-col"></th>
 
         <th colSpan={3} className="table-success">LLEGADA DE CLIENTE A ENVIO DE PAQUETE</th>
@@ -28,10 +28,10 @@ function CuadroCabecera() {
         <th colSpan={7} className="table-warning">CLIENTE</th>
       </tr>
 
-      <tr>
-      <th className="table-warning sticky-col">IT</th>
-        <th className="table-warning sticky-col">RELOJ</th>
-        <th className="table-warning sticky-col-2">EVENTO</th>
+      <tr >
+        <th className="table-warning sticky-col-1">IT</th>
+        <th className="table-warning sticky-col-2">RELOJ</th>
+        <th className="table-warning sticky-col-3">EVENTO</th>
 
         <th className="table-dark sticky-col-3">RND</th>
         <th className="table-secondary sticky-col-4">TMPO ENTRE LLEG</th>
