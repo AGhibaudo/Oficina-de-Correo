@@ -40,11 +40,18 @@ class Cliente:
     def nombre(self):
         return f'{self.tipo}{self.id}'
 
+#     {
+#   "lineas": 100,
+#   "parametroT": 1,
+#   "experienciaEmpleados": {
+#     "paquetes": { "s1": "aprendiz", "s2": "aprendiz" },
+#     "ryd": { "s1": "aprendiz" }
+#   }
+# }
 class SimuladorCorreo:
-    def __init__(self, lineas, limInfExpertizEmpleado, limSupExpertizEmpleado, parametroT):
+    def __init__(self, lineas, parametroT, experienciaEmpleados):
         self.lineas = lineas
-        self.lim_inf_exp = limInfExpertizEmpleado
-        self.lim_sup_exp = limSupExpertizEmpleado
+        self.experienciaEmpleados = experienciaEmpleados
         self.param_t = parametroT
 
         self.limite_minutos = 480
@@ -115,13 +122,6 @@ class SimuladorCorreo:
             cliente.estado = 'EN COLA'
 
 
-# tiempo de espera promedio
-
-# acum tiempo de espera
-# cant clientes atendidos
-# porcentaje de ocupacion
-# cant parcial (acum tiempo ocupado)
-# cant total (hora ultima iteracion)
     def registrar_estado(self, evento, info_extra):
         fila = {
             'ITERACION': self.iteracion + 1,

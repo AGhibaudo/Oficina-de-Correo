@@ -2,57 +2,61 @@ import React, { useState } from "react";
 
 export default function ParametrosForm({ onSimulacionCompleta }) {
   const [lineas, setLineas] = useState(100);
-  const [limInf, setLimInf] = useState("");
-  const [limSup, setLimSup] = useState("");
   const [paramT, setParamT] = useState("");
+  const [experiencia, setExperiencia] = useState({
+    paquetes: { s1: "aprendiz", s2: "aprendiz" },
+    ryd:     { s1: "aprendiz" },
+  });
   const [respuesta, setRespuesta] = useState(null);
   const [error, setError] = useState(null);
 
-  const opcionesLineas = [
-    { value: 10, label: "10" },
-    { value: 1000, label: "1 000" },
-    { value: 50000, label: "50 000" },
-    { value: 10000000, label: "10 000 000" },
-  ];
+  const handleExperienciaChange = (categoria, servidor, valor) => {
+    setExperiencia(prev => ({
+      ...prev,
+      [categoria]: {
+        ...prev[categoria],
+        [servidor]: valor
+      }
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setRespuesta(null);
 
-    if (!limInf || !limSup || !paramT) {
-      setError("Todos los campos son obligatorios.");
+    // Validaciones
+    const nLineas = Number(lineas);
+    if (isNaN(nLineas) || nLineas < 0 || nLineas > 10000000) {
+      setError("Las líneas deben ser un número entre 0 y 10 000 000.");
       return;
     }
-
-    if (Number(limInf) >= Number(limSup)) {
-      setError("El límite inferior debe ser menor que el superior.");
+    if (!paramT) {
+      setError("El parámetro T es obligatorio.");
       return;
     }
 
     try {
-      // 1. Enviar parámetros
+      // 1) Enviar parámetros al backend
       const res = await fetch("http://localhost:8000/parametros", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lineas: Number(lineas),
-          limInfExpertizEmpleado: Number(limInf),
-          limSupExpertizEmpleado: Number(limSup),
+          lineas: nLineas,
           parametroT: parseFloat(paramT),
+          experienciaEmpleados: experiencia
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Error en servidor");
       setRespuesta(data);
 
-      // 2. Ejecutar simulación automáticamente
+      // 2) Ejecutar simulación automáticamente
       const simRes = await fetch("http://localhost:8000/simular");
       const filas = await simRes.json();
       if (!simRes.ok) throw new Error(filas.detail || "Error al ejecutar simulación");
 
-      // 3. Enviar filas al componente padre (App)
+      // 3) Devolver filas al componente padre
       onSimulacionCompleta(filas);
 
     } catch (err) {
@@ -69,45 +73,23 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
         className="mx-auto row row-cols-1 row-cols-md-2 g-3"
         style={{ maxWidth: "600px" }}
       >
+        {/* Líneas a simular */}
         <div className="col-12">
           <label className="form-label">Líneas a simular:</label>
-          <select
-            className="form-select"
+          <input
+            type="number"
+            className="form-control"
             value={lineas}
             onChange={(e) => setLineas(e.target.value)}
-          >
-            {opcionesLineas.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="col-12">
-          <label className="form-label">Límite Inferior Expertiz:</label>
-          <input
-            type="number"
-            className="form-control"
-            value={limInf}
-            onChange={(e) => setLimInf(e.target.value)}
-            placeholder="p.ej. 1"
+            min="0"
+            max="10000000"
+            step="1"
+            placeholder="0 – 10 000 000"
             required
           />
         </div>
 
-        <div className="col-12">
-          <label className="form-label">Límite Superior Expertiz:</label>
-          <input
-            type="number"
-            className="form-control"
-            value={limSup}
-            onChange={(e) => setLimSup(e.target.value)}
-            placeholder="p.ej. 10"
-            required
-          />
-        </div>
-
+        {/* Parámetro T */}
         <div className="col-12">
           <label className="form-label">Parámetro T (Runge-Kutta):</label>
           <input
@@ -121,22 +103,84 @@ export default function ParametrosForm({ onSimulacionCompleta }) {
           />
         </div>
 
-        <div className="col-12 text-center">
-          <button type="submit" className="btn btn-primary mt-3 px-5">
+        {/* Experiencia de Envio de Paquetes */}
+        <fieldset className="col-12 mb-4">
+          <legend className="form-label">Envio de Paquetes</legend>
+          {["s1", "s2"].map((s, idx) => (
+            <div key={s} className="col-12 d-flex align-items-center flex-nowrap mb-2">
+              <span className="me-2">{`Empleado${idx + 1}:`}</span>
+              <div className="form-check form-check-inline">
+                <input
+                  type="radio"
+                  id={`paq-${s}-aprendiz`}
+                  name={`paq-${s}`}
+                  className="form-check-input"
+                  value="aprendiz"
+                  checked={experiencia.paquetes[s] === "aprendiz"}
+                  onChange={() => handleExperienciaChange("paquetes", s, "aprendiz")}
+                />
+                <label className="form-check-label" htmlFor={`paq-${s}-aprendiz`}>
+                  Aprendiz
+                </label>
+              </div>
+              <div className="form-check form-check-inline">
+                <input
+                  type="radio"
+                  id={`paq-${s}-experto`}
+                  name={`paq-${s}`}
+                  className="form-check-input"
+                  value="experto"
+                  checked={experiencia.paquetes[s] === "experto"}
+                  onChange={() => handleExperienciaChange("paquetes", s, "experto")}
+                />
+                <label className="form-check-label" htmlFor={`paq-${s}-experto`}>
+                  Experto
+                </label>
+              </div>
+            </div>
+          ))}
+        </fieldset>
+
+        {/* Experiencia Reclamos y Devoluciones */}
+        <fieldset className="col-12 mb-4">
+          <legend className="form-label">Reclamos y Devoluciones</legend>
+          <div className="d-flex align-items-center flex-nowrap mb-2">
+            <span className="me-3">Empleado:</span>
+            {["aprendiz", "experto"].map((val) => (
+              <div key={val} className="form-check form-check-inline">
+                <input
+                  type="radio"
+                  id={`ryd-s1-${val}`}
+                  name="ryd-s1"
+                  className="form-check-input"
+                  value={val}
+                  checked={experiencia.ryd.s1 === val}
+                  onChange={() => handleExperienciaChange("ryd", "s1", val)}
+                />
+                <label className="form-check-label" htmlFor={`ryd-s1-${val}`}>
+                  {val.charAt(0).toUpperCase() + val.slice(1)}
+                </label>
+              </div>
+            ))}
+          </div>
+        </fieldset>
+
+        {/* Botón de envío */}
+        <div className="col-md-6 offset-md-3 mt-4 d-grid">
+          <button type="submit" className="btn btn-primary">
             Enviar Parámetros
           </button>
         </div>
 
+        {/* Mensajes de error y éxito */}
         {error && (
           <div className="col-12 alert alert-danger mt-2 text-center">
             <strong>Error:</strong> {error}
           </div>
         )}
-
         {respuesta && (
           <div className="col-12 alert alert-success mt-2 text-center">
-            <strong>Respuesta del backend:</strong>
-            <div>{respuesta.message}</div>
+            <strong>Respuesta del backend:</strong> {respuesta.message}
           </div>
         )}
       </form>

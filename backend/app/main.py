@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi import HTTPException
 from simulacion import SimuladorCorreo 
+from typing import Literal # Se agrega
+from fastapi import Request
 
 
 app = FastAPI()
@@ -26,18 +28,29 @@ app.add_middleware(
 )
 
 # Modelo de datos esperado
+# Se agrega
+class ServidorPaquetes(BaseModel):
+    s1: Literal['aprendiz', 'experto']
+    s2: Literal['aprendiz', 'experto']
+
+class ServidorReclamos(BaseModel):
+    s1: Literal['aprendiz', 'experto']
+
+class ExperienciaEmpleados(BaseModel):
+    paquetes: ServidorPaquetes
+    ryd: ServidorReclamos
+
 class FormParametros(BaseModel):
     lineas: int
-    limInfExpertizEmpleado: int
-    limSupExpertizEmpleado: int
     parametroT: float
-    """
-    Acá puse más o menos los parámetros que se supone que debería poder modificar el usuario
-    Lineas a simular: Faltaría hacer la validación en el Forms que sea de: 100, 1000, 50000, 10000000 corte desplegable.
-    Limite inferior expertiz del empleado: Indica q tan malo es definiendo un limite para la Distr. Uniforme.
-    Lim Superior expertiz del empleado: Indica q tan bueno es definiendo el máximo de capacidad que este puede tener para la Distr. Uniforme.
-    parametro T: Esté parámetro es una cte para poder realizar Runge Kutta de 4to orden.
-    """
+    experienciaEmpleados: ExperienciaEmpleados
+
+
+# class FormParametros(BaseModel):
+#     lineas: int
+#     limInfExpertizEmpleado: int
+#     limSupExpertizEmpleado: int
+#     parametroT: float
 
 app.state.form_params: FormParametros | None = None
 
@@ -54,10 +67,18 @@ def urg():
         contenido = f.read()
     return contenido
 
+# @app.post("/parametros")
+# async def recibir_form(data: FormParametros):
+#     app.state.form_params = data
+#     return {"ok": True, "message": "Parámetros recibidos con exito!"} 
+
+# CAMBIOS CON EL FORM
 @app.post("/parametros")
-async def recibir_form(data: FormParametros):
-    app.state.form_params = data
+async def recibir_parametros(form: FormParametros):
+    app.state.form_params = form
     return {"ok": True, "message": "Parámetros recibidos con exito!"} 
+
+
 
 @app.get("/parametros")
 async def obtener_forms_params():
@@ -72,11 +93,11 @@ def simular():
         raise HTTPException(400, detail="Faltan parámetros del formulario")
  # Importa tu clase
     params = app.state.form_params
+
     sim = SimuladorCorreo(
         params.lineas,
-        params.limInfExpertizEmpleado,
-        params.limSupExpertizEmpleado,
-        params.parametroT
+        params.parametroT,
+        params.experienciaEmpleados
     )
     df = sim.ejecutar()
     print(df.to_string(index=False))
