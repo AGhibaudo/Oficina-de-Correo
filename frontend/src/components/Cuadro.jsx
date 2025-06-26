@@ -14,7 +14,7 @@ function Cuadro({ filas }) {
     <div className="container-fluid px-0">
       <div className="table-responsive table-container">
         <table className="table table-bordered border-dark text-center mb-0">
-          <CuadroCabecera />
+          <CuadroCabecera filas={filas} />
           <thead className="filas-fijas">
             {filasFijas.map((fila, i) => (
               <tr key={`fija-${i}`}>

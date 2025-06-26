@@ -1,6 +1,11 @@
 import React from "react";
 
-function CuadroCabecera() {
+function CuadroCabecera({ filas }) {
+  // Obtener las claves de la última fila para buscar los clientes
+  const ultimaFila = filas[filas.length - 1] || {};
+  const nombresClientes = Object.keys(ultimaFila)
+    .filter((k) => k.endsWith("_ESTADO"))
+    .map((k) => k.replace("_ESTADO", ""));
   return (
     <thead className="fijada">
       <tr >
@@ -9,8 +14,8 @@ function CuadroCabecera() {
         <th colSpan={2}></th>
         <th colSpan={10} className="table-success">SERVIDORES ENVIO DE PAQUETES</th>
         <th colSpan={5} className="table-danger">SERVIDOR RECLAMOS Y DEVOLUCIONES</th>
-        <th colSpan={7} className="table-primary">VARIABLES PARA ESTADISTICAS</th>
-
+        <th colSpan={6} className="table-primary">VARIABLES PARA ESTADISTICAS</th>
+        <th colSpan={nombresClientes.length * 4} className="table-warning">CLIENTES</th>
       </tr>
 
       <tr >
@@ -23,9 +28,12 @@ function CuadroCabecera() {
         <th colSpan={5} className="table-dark">EMPLEADO 2</th>
         <th colSpan={5} className="table-dark">EMPLEADO 1</th>
         <th colSpan={3} className="table-primary">SERVICIO PAQUETES</th>
-        <th colSpan={4} className="table-primary">SERVICIO RECLAMOS</th>
+        <th colSpan={3} className="table-primary">SERVICIO RECLAMOS</th>
 
-        <th colSpan={7} className="table-warning">CLIENTE</th>
+
+        {nombresClientes.map((nombre) => (
+          <th key={`${nombre}_grupo`} colSpan={4} className="table-warning">{nombre}</th>
+        ))}
       </tr>
 
       <tr >
@@ -73,13 +81,15 @@ function CuadroCabecera() {
         <th className="table-secondary">TMPO ACUM DE ESPERA</th>
         <th className="table-secondary">CONT CLIENTES ATENDIDOS</th>
         <th className="table-secondary">TMPO ACUM USO</th>
-
-        <th>ID</th>
-        <th>TIPO</th>
-        <th>ESTADO</th>
-        <th>TIEMPO DE LLEGADA</th>
-        <th>INICIO DE ATENCION</th>
-        <th>FIN DE ATENCION</th>
+        
+        {nombresClientes.map((nombre) => (
+          <React.Fragment key={nombre}>
+            <th className="table-warning">ESTADO</th>
+            <th className="table-warning">LLEGADA</th>
+            <th className="table-warning">INICIO</th>
+            <th className="table-warning">FIN</th>
+          </React.Fragment>
+        ))}
       </tr>
     </thead>
   );

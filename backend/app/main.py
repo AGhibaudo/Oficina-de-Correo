@@ -3,6 +3,8 @@ from utilities import *
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from fastapi import HTTPException
 from simulacion import SimuladorCorreo 
@@ -61,11 +63,7 @@ Enpoints Definidos
 def read_root():
     return {"mensaje": "API funcionando correctamente, ntu al netimanid"}
 
-@app.get("/69", response_class=PlainTextResponse)
-def urg():
-    with open("models/69.txt", "r", encoding="utf-8") as f:
-        contenido = f.read()
-    return contenido
+
 
 # @app.post("/parametros")
 # async def recibir_form(data: FormParametros):
@@ -101,5 +99,34 @@ def simular():
     )
     df = sim.ejecutar()
     print(df.to_string(index=False))
-    return df.to_dict(orient="records")  # Devolvemos como lista de dicts
+    return df.to_dict(orient="records") 
 
+# @app.get("/simular")
+# def simular():
+#     if app.state.form_params is None:
+#         raise HTTPException(400, detail="Faltan parámetros del formulario")
+
+#     params = app.state.form_params
+
+#     sim = SimuladorCorreo(
+#         params.lineas,
+#         params.parametroT,
+#         params.experienciaEmpleados
+#     )
+#     df = sim.ejecutar()
+
+#     # Convertimos el DataFrame a lista de diccionarios (una por fila)
+#     tabla = df.to_dict(orient="records")
+
+#     # Extraemos los detalles de cada atención (Runge-Kutta) de fin_atencion
+#     detalles_rk = {}
+#     for evento in sim.fin_atencion:
+#         cliente = evento["cliente"].nombre()  # ejemplo: PAQ1 o REC2
+#         servidor_id = evento["id"]
+#         clave = f"{cliente}_{servidor_id}"
+#         detalles_rk[clave] = evento.get("detalle_rk", [])
+
+#     return JSONResponse(content={
+#         "tabla": tabla,
+#         "detallesRK": detalles_rk
+#     })

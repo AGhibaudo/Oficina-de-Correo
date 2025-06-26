@@ -16,17 +16,45 @@ def distribucion_exponencial(tasa_por_hora):
 def funcionEDO(t, R, C, T):
     return C + 0.2 * T + t**2
 
-def rungeKutta(R_inicial, T, C, h=0.1):
+# def rungeKutta(R_inicial, T, C, h=1):
+#     t = 0.0
+#     R = R_inicial
+#     while R > 0:
+#         k1 = h * funcionEDO(t, R, C, T)
+#         k2 = h * funcionEDO(t + h/2, R + k1/2, C, T)
+#         k3 = h * funcionEDO(t + h/2, R + k2/2, C, T)
+#         k4 = h * funcionEDO(t + h, R + k3, C, T)
+#         R -= (k1 + 2*k2 + 2*k3 + k4) / 6
+#         t += h
+#     return round(t, 2)
+
+def rungeKutta(R_inicial, T, C, h=1):
     t = 0.0
     R = R_inicial
+    pasos = []
+
     while R > 0:
         k1 = h * funcionEDO(t, R, C, T)
         k2 = h * funcionEDO(t + h/2, R + k1/2, C, T)
         k3 = h * funcionEDO(t + h/2, R + k2/2, C, T)
         k4 = h * funcionEDO(t + h, R + k3, C, T)
-        R -= (k1 + 2*k2 + 2*k3 + k4) / 6
+
+        pasos.append({
+            "t": round(t, 2),
+            "R": round(R, 2),
+            "k1": round(k1, 2),
+            "k2": round(k2, 2),
+            "k3": round(k3, 2),
+            "k4": round(k4, 2),
+        })
+
+        R -= (k1 + 2 * k2 + 2 * k3 + k4) / 6
         t += h
-    return round(t, 2)
+
+    return {
+        "resultado": round(t, 2),
+        "detalle": pasos
+    }
 
 class Cliente:
     def __init__(self, tipo, id):
@@ -120,10 +148,13 @@ class SimuladorCorreo:
 
                 cliente.reloj_inicio = self.reloj
                 C = len(self.cola_paquetes if tipo == 'PAQUETE' else self.cola_reclamos)
-                duracion = rungeKutta(servidor['R'], self.reloj, C)
+                res_rk = rungeKutta(servidor['R'], self.reloj, C)
+                duracion = res_rk["resultado"]
+                detalle_rk = res_rk["detalle"]
+
                 fin = round(self.reloj + duracion, 2)
                 cliente.reloj_fin = fin
-                self.fin_atencion.append({'tipo': tipo, 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion})
+                self.fin_atencion.append({'tipo': tipo, 'fin': fin, 'id': i, 'cliente': cliente, 'rk': duracion, 'detalle_rk': detalle_rk})
                 break
         else:
             if tipo == 'PAQUETE':
@@ -189,7 +220,12 @@ class SimuladorCorreo:
                 fila['FIN_R1'] = e['fin']
 
         for nombre, cliente in self.clientes.items():
-            fila[nombre] = cliente.estado
+            fila[f'{nombre}_TIPO'] = cliente.tipo
+            fila[f'{nombre}_ID'] = cliente.id
+            fila[f'{nombre}_ESTADO'] = cliente.estado
+            fila[f'{nombre}_LLEGADA'] = cliente.reloj_llegada
+            fila[f'{nombre}_INICIO'] = cliente.reloj_inicio
+            fila[f'{nombre}_FIN'] = cliente.reloj_fin
         fila.update(info_extra)
         self.vector_estado.append(fila)
 
